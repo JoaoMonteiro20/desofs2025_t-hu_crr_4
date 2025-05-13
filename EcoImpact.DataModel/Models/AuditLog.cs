@@ -8,7 +8,7 @@ namespace EcoImpact.DataModel.Models
 {
     public class AuditLog
     {
-        public Guid LogId { get; set; }
+        public Guid AuditLogId { get; set; }
 
         public Guid UserId { get; set; }
         public string ActionType { get; set; } = null!;
@@ -18,3 +18,4 @@ namespace EcoImpact.DataModel.Models
 
         public User User { get; set; } = null!;
     }
+}
