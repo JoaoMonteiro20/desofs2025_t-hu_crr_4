@@ -1,0 +1,6 @@
+@EcoImpact.API_HostAddress = http://localhost:5100
+
+GET {{EcoImpact.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
