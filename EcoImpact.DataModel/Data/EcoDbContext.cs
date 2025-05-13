@@ -8,7 +8,6 @@ public class EcoDbContext : DbContext
     public EcoDbContext(DbContextOptions<EcoDbContext> options) : base(options) { }
 
     public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<HabitType> HabitTypes { get; set; }
     public DbSet<UserChoice> UserChoices { get; set; }
     public DbSet<FootprintSummary> FootprintSummaries { get; set; }
@@ -17,13 +16,6 @@ public class EcoDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Role → User (1:N)
-        modelBuilder.Entity<Role>()
-            .HasMany(r => r.Users)
-            .WithOne(u => u.Role)
-            .HasForeignKey(u => u.RoleId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         // User → UserChoice (1:N)
         modelBuilder.Entity<User>()

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoImpact.API.Migrations
 {
     [DbContext(typeof(EcoDbContext))]
-    [Migration("20250513202446_InitDb")]
+    [Migration("20250513223154_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -101,21 +101,6 @@ namespace EcoImpact.API.Migrations
                     b.ToTable("HabitTypes");
                 });
 
-            modelBuilder.Entity("EcoImpact.DataModel.Models.Role", b =>
-                {
-                    b.Property<Guid>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("RoleId");
-
-                    b.ToTable("Roles");
-                });
-
             modelBuilder.Entity("EcoImpact.DataModel.Models.User", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -130,6 +115,9 @@ namespace EcoImpact.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
@@ -138,8 +126,6 @@ namespace EcoImpact.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -200,17 +186,6 @@ namespace EcoImpact.API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EcoImpact.DataModel.Models.User", b =>
-                {
-                    b.HasOne("EcoImpact.DataModel.Models.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-                });
-
             modelBuilder.Entity("EcoImpact.DataModel.Models.UserChoice", b =>
                 {
                     b.HasOne("EcoImpact.DataModel.Models.HabitType", "HabitType")
@@ -233,11 +208,6 @@ namespace EcoImpact.API.Migrations
             modelBuilder.Entity("EcoImpact.DataModel.Models.HabitType", b =>
                 {
                     b.Navigation("UserChoices");
-                });
-
-            modelBuilder.Entity("EcoImpact.DataModel.Models.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("EcoImpact.DataModel.Models.User", b =>
