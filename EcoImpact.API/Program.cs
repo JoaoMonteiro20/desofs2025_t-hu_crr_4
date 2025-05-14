@@ -30,6 +30,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
 
 // Database
 builder.Services.AddDbContext<EcoDbContext>(options =>

@@ -1,32 +1,38 @@
 ﻿using EcoImpact.DataModel.Models;
-using EcoImpact.DataModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
 public class HabitTypesController : ControllerBase
 {
-    private readonly EcoDbContext _context;
+    private readonly IHabitTypeService _habitService;
 
-    public HabitTypesController(EcoDbContext context)
+    public HabitTypesController(IHabitTypeService habitService)
     {
-        _context = context;
+        _habitService = habitService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<HabitType>>> GetHabitTypes()
+    public async Task<ActionResult<IEnumerable<HabitType>>> GetAll()
     {
-        return await _context.HabitTypes.ToListAsync();
+        var habits = await _habitService.GetAllAsync();
+        return Ok(habits);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<HabitType>> GetById(Guid id)
+    {
+        var habit = await _habitService.GetByIdAsync(id);
+        if (habit == null) return NotFound();
+        return Ok(habit);
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<HabitType>> CreateHabitType(HabitType habit)
+    public async Task<ActionResult<HabitType>> Create([FromBody] HabitTypeDto dto)
     {
-        _context.HabitTypes.Add(habit);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetHabitTypes), new { id = habit.HabitTypeId }, habit);
+        var created = await _habitService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.HabitTypeId }, created);
     }
 }
