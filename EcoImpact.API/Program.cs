@@ -31,6 +31,8 @@ builder.Services.AddSingleton<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
+builder.Services.AddScoped<IUserChoiceService, UserChoiceService>();
+
 
 // Database
 builder.Services.AddDbContext<EcoDbContext>(options =>
@@ -82,7 +84,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

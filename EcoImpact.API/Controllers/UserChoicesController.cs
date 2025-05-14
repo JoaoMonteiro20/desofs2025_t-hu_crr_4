@@ -1,36 +1,40 @@
 ﻿using EcoImpact.DataModel.Models;
-using EcoImpact.DataModel;
-using Microsoft.AspNetCore.Authorization;
+using EcoImpact.DataModel.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 [ApiController]
 [Route("api/[controller]")]
 public class UserChoicesController : ControllerBase
 {
-    private readonly EcoDbContext _context;
+    private readonly IUserChoiceService _service;
+    private readonly ILogger<UserChoicesController> _logger;
 
-    public UserChoicesController(EcoDbContext context)
+    public UserChoicesController(IUserChoiceService service, ILogger<UserChoicesController> logger)
     {
-        _context = context;
+        _service = service;
+        _logger = logger;
     }
 
     [HttpGet]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<UserChoice>>> GetUserChoices()
+    public async Task<ActionResult<IEnumerable<UserChoice>>> GetAll()
     {
-        return await _context.UserChoices
-            .Include(uc => uc.HabitType)
-            .Include(uc => uc.User)
-            .ToListAsync();
+        var choices = await _service.GetAllAsync();
+        return Ok(choices);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<UserChoice>> GetById(Guid id)
+    {
+        var choice = await _service.GetByIdAsync(id);
+        if (choice == null) return NotFound();
+        return Ok(choice);
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<UserChoice>> CreateUserChoice(UserChoice choice)
+    public async Task<ActionResult<UserChoice>> Create([FromBody] UserChoiceDto dto)
     {
-        _context.UserChoices.Add(choice);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetUserChoices), new { id = choice.UserChoiceId }, choice);
+        var created = await _service.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.UserChoiceId }, created);
     }
 }
