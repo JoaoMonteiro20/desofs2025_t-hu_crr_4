@@ -1,9 +1,6 @@
-﻿using EcoImpact.DataModel;
-using EcoImpact.DataModel.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
 using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EcoImpact.API.Controllers;
 
@@ -11,66 +8,50 @@ namespace EcoImpact.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly EcoDbContext _context;
+    private readonly IUserService _userService;
 
-    public UsersController(EcoDbContext context)
+    public UsersController(IUserService userService)
     {
-        _context = context;
+        _userService = userService;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
-        return await _context.Users.ToListAsync();
+        var users = await _userService.GetAllAsync();
+        return Ok(users);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    [HttpGet("{id:guid}")]
+    [Authorize]
+    public async Task<ActionResult<User>> GetUser(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _userService.GetByIdAsync(id);
         if (user == null) return NotFound();
-        return user;
+        return Ok(user);
     }
 
     [HttpPost]
-    public async Task<ActionResult<User>> CreateUser([FromBody] CreateUserDto dto)
+    [AllowAnonymous]
+    public async Task<ActionResult<User>> CreateUser(User user)
     {
-        if (!Enum.TryParse<UserRole>(dto.Role, true, out var parsedRole))
-            return BadRequest("Invalid role. Use Admin, User or Moderator.");
-
-        var user = new User
-        {
-            UserName = dto.UserName,
-            Email = dto.Email,
-            Password = dto.Password,
-            Role = parsedRole
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+        var created = await _userService.CreateAsync(user);
+        return CreatedAtAction(nameof(GetUser), new { id = created.UserId }, created);
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize]
     public async Task<IActionResult> UpdateUser(Guid id, User updatedUser)
     {
-        if (id != updatedUser.UserId) return BadRequest();
-
-        _context.Entry(updatedUser).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return NoContent();
+        var success = await _userService.UpdateAsync(id, updatedUser);
+        return success ? NoContent() : BadRequest();
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteUser(int id)
+    public async Task<IActionResult> DeleteUser(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null) return NotFound();
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return NoContent();
+        var success = await _userService.DeleteAsync(id);
+        return success ? NoContent() : NotFound();
     }
 }
