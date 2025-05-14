@@ -22,3 +22,9 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+/EcoImpact.API/obj/Debug/net8.0
+/EcoImpact.API/bin/Debug/net8.0
+/EcoImpact.DataModel/bin/Debug/net8.0
+/EcoImpact.DataModel/obj/Debug/net8.0
+/EcoImpact.API/obj
+/EcoImpact.DataModel/obj

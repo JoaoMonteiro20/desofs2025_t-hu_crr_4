@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EcoImpact.API.Migrations
 {
     [DbContext(typeof(EcoDbContext))]
-    [Migration("20250513223154_InitDb")]
+    [Migration("20250513234503_InitDb")]
     partial class InitDb
     {
         /// <inheritdoc />
@@ -117,9 +117,6 @@ namespace EcoImpact.API.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("UserName")
                         .IsRequired()

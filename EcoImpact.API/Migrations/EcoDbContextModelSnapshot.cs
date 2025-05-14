@@ -115,9 +115,6 @@ namespace EcoImpact.API.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
