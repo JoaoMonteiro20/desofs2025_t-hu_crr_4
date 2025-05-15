@@ -6,9 +6,9 @@ namespace EcoImpact.DataModel;
 public class EcoDbContext : DbContext
 {
     public EcoDbContext(DbContextOptions<EcoDbContext> options) : base(options) { }
-
-    public DbSet<User> Users { get; set; }
-    public DbSet<HabitType> HabitTypes { get; set; }
+    public EcoDbContext() { }
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<HabitType> HabitTypes { get; set; }
     public DbSet<UserChoice> UserChoices { get; set; }
     public DbSet<FootprintSummary> FootprintSummaries { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
