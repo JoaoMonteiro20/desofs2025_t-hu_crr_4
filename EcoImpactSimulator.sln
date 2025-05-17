@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoImpact.API", "EcoImpact.API\EcoImpact.API.csproj", "{81E6882A-CF18-42CF-8BD2-C5011F8F44C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoImpact.DataModel", "EcoImpact.DataModel\EcoImpact.DataModel.csproj", "{EA9E825C-9946-498B-805B-F9D941406EB3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcoImpact.Tests", "EcoImpact.Tests\EcoImpact.Tests.csproj", "{66344FBA-48EB-4A48-804A-2FD7CA93F214}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81E6882A-CF18-42CF-8BD2-C5011F8F44C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81E6882A-CF18-42CF-8BD2-C5011F8F44C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81E6882A-CF18-42CF-8BD2-C5011F8F44C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81E6882A-CF18-42CF-8BD2-C5011F8F44C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA9E825C-9946-498B-805B-F9D941406EB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA9E825C-9946-498B-805B-F9D941406EB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA9E825C-9946-498B-805B-F9D941406EB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA9E825C-9946-498B-805B-F9D941406EB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
