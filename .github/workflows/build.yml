@@ -26,5 +26,6 @@ jobs:
       run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
     - name: Run tests
-      run: dotnet test EcoImpactSimulator.sln --no-build --collect:"XPlat Code Coverage"
+      run: dotnet test EcoImpactSimulator.sln --no-build --configuration Release
+
 
