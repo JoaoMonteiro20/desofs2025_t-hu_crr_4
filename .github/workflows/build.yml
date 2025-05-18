@@ -20,10 +20,11 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore EcoImpact.sln
+      run: dotnet restore EcoImpactSimulator.sln
 
     - name: Build
-      run: dotnet build EcoImpact.sln --no-restore --configuration Release
+      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
     - name: Run tests
-      run: dotnet test EcoImpact.sln --no-build --collect:"XPlat Code Coverage"
+      run: dotnet test EcoImpactSimulator.sln --no-build --collect:"XPlat Code Coverage"
+
