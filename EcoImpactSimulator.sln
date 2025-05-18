@@ -9,10 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcoImpact.DataModel", "EcoI
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcoImpact.Tests", "EcoImpact.Tests\EcoImpact.Tests.csproj", "{66344FBA-48EB-4A48-804A-2FD7CA93F214}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{7512F8F7-8D0A-44C7-A029-D1A7F2E0BE90}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{423C67C0-C130-4923-ADCD-C47CB8AC2F84}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,9 +30,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{423C67C0-C130-4923-ADCD-C47CB8AC2F84} = {7512F8F7-8D0A-44C7-A029-D1A7F2E0BE90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {55B534A4-7062-46D1-8A7C-6DF77F170CD4}
