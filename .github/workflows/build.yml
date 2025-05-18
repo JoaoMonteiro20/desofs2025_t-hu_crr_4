@@ -49,5 +49,5 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_PROJECT_KEY: JoaoMonteiro20_desofs2025_t-hu_crr_4
-        SONAR_ORG: JoaoMonteiro20
+        SONAR_ORG: joaomonteiro20
 
