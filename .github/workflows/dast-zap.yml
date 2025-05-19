@@ -18,14 +18,14 @@ jobs:
         docker compose -f docker-compose.yml up -d
         sleep 15
 
-    - name: Run ZAP Baseline Scan via Docker (sem upload)
+    - name: Run ZAP Baseline Scan via Docker
       run: |
-        docker run --network="host" \
-          -v $(pwd):/zap/wrk/:rw \
+        mkdir zap-results
+        docker run --rm \
+          -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
           ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
           -t http://localhost:8080 \
           -r zap-report.html
-
 
     - name: Tear down Docker Compose
       run: docker compose -f docker-compose.yml down
