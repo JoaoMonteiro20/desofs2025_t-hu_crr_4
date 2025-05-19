@@ -12,34 +12,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore EcoImpactSimulator.sln
+      - name: Restore dependencies
+        run: dotnet restore EcoImpactSimulator.sln
 
-    - name: Build
-      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+      - name: Build
+        run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-    - name: Run tests with coverage
-      run: |
-        dotnet test EcoImpactSimulator.sln --no-build --configuration Release \
-          /p:CollectCoverage=true \
-          /p:CoverletOutputFormat=opencover \
-          /p:CoverletOutput=TestResults/coverage.xml
+      - name: Run tests with coverage
+        run: dotnet test EcoImpactSimulator.sln --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
 
-    - name: Upload coverage artifact (optional)
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: ./EcoImpact.Tests/TestResults/coverage.xml
-
-
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: ./TestResults
 
   sonarcloud:
     name: SAST - SonarCloud Scan
