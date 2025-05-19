@@ -25,5 +25,17 @@ jobs:
     - name: Build
       run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-    - name: Run tests
-      run: dotnet test EcoImpactSimulator.sln --no-build --collect:"XPlat Code Coverage"
+    - name: Run tests with coverage
+      run: |
+        dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj \
+          --no-build \
+          --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=opencover \
+          /p:CoverletOutput=TestResults/coverage.xml
+
+    - name: Upload coverage report (optional)
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: EcoImpact.Tests/TestResults/coverage.xml
