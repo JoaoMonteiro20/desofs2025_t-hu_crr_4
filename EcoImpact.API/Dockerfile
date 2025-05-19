@@ -4,9 +4,9 @@ EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["EcoImpact.API/EcoImpact.API.csproj", "EcoImpact.API/"]
-COPY ["EcoImpact.DataModel/EcoImpact.DataModel.csproj", "EcoImpact.DataModel/"]
-RUN dotnet restore "EcoImpact.API/EcoImpact.API.csproj"
+COPY ["./EcoImpact.API.csproj", "EcoImpact.API/"]
+COPY ["../EcoImpact.DataModel/EcoImpact.DataModel.csproj", "EcoImpact.DataModel/"]
+RUN dotnet restore "./EcoImpact.API.csproj"
 COPY . .
 WORKDIR "/src/EcoImpact.API"
 RUN dotnet build "EcoImpact.API.csproj" -c Release -o /app/build
