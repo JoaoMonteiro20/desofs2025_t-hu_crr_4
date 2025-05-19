@@ -24,14 +24,5 @@ jobs:
         target: "http://localhost:8080"
         cmd_options: "-a"
 
-    - name: Upload ZAP Report
-      uses: actions/upload-artifact@v3
-      with:
-        name: zap-report
-        path: |
-          report_html.html
-          report_md.md
-          report_json.json
-
     - name: Tear down Docker Compose
       run: docker compose -f docker-compose.yml down
