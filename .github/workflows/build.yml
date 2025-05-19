@@ -1,0 +1,36 @@
+name: Build CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore EcoImpactSimulator.sln
+
+    - name: Build
+      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+
+    - name: Run tests with coverage
+      run: |
+        dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj \
+          --no-build \
+          --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=opencover \
+          /p:CoverletOutput=TestResults/coverage.xml
+
