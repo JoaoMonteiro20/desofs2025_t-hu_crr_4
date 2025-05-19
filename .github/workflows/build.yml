@@ -1,4 +1,4 @@
-name:   Build CI
+name: Build CI
 
 on:
   push:
@@ -50,5 +50,5 @@ jobs:
         args: >
           -Dsonar.organization=joaomonteiro20
           -Dsonar.projectKey=JoaoMonteiro20_desofs2025_t-hu_crr_4
-          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.cs.opencover.reportsPaths=**/TestResults/coverage.xml
 
