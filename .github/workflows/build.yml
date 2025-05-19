@@ -8,6 +8,7 @@ on:
 
 jobs:
   build-test:
+    name: Build & Test with Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +26,18 @@ jobs:
     - name: Build
       run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-    - name: Run tests
-      run: dotnet test EcoImpactSimulator.sln --no-build --configuration Release
+    - name: Run tests with coverage
+      run: |
+        dotnet test EcoImpactSimulator.sln --no-build --configuration Release \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=opencover \
+          /p:CoverletOutput=TestResults/coverage.xml
+
+    - name: Upload coverage artifact (optional)
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: TestResults/coverage.xml
 
   sonarcloud:
     name: SAST - SonarCloud Scan
@@ -51,4 +62,3 @@ jobs:
           -Dsonar.organization=joaomonteiro20
           -Dsonar.projectKey=JoaoMonteiro20_desofs2025_t-hu_crr_4
           -Dsonar.cs.opencover.reportsPaths=**/TestResults/coverage.xml
-
