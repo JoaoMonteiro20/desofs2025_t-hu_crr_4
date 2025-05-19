@@ -24,7 +24,7 @@ jobs:
         docker run --rm \
           -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
           ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-          -t http://localhost:8080 \
+          -t http://localhost:7020 \
           -r zap-report.html
 
     - name: Tear down Docker Compose
