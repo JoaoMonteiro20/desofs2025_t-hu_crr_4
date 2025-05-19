@@ -50,6 +50,9 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.opencover.reportsPaths="EcoImpact.Tests\TestResults\coverage.xml"
 
+      - name: Restore dependencies
+        run: dotnet restore EcoImpactSimulator.sln
+
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
