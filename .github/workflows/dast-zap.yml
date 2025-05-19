@@ -7,32 +7,31 @@ on:
 
 jobs:
   dast:
-    name: Run OWASP ZAP Baseline Scan
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Start containers
-      run: docker compose up -d
+    - name: Set up Docker Compose
+      run: |
+        docker compose -f docker-compose.yml up -d
+        sleep 15
 
-    - name: Wait for API to be ready
-      run: sleep 15
-
-    - name: Run ZAP Baseline Scan
+    - name: Run OWASP ZAP Baseline Scan
       uses: zaproxy/action-baseline@v0.10.0
       with:
         target: "http://localhost:8080"
+        cmd_options: "-a"
 
     - name: Upload ZAP Report
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: zap-scan  # nome (válido!)
+        name: zap-report
         path: |
           report_html.html
           report_md.md
           report_json.json
 
-    - name: Stop containers
-      run: docker compose down
+    - name: Tear down Docker Compose
+      run: docker compose -f docker-compose.yml down
