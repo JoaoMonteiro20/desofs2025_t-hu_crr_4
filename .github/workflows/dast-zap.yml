@@ -16,7 +16,20 @@ jobs:
     - name: Set up Docker Compose
       run: |
         docker compose -f docker-compose.yml up -d
-        sleep 60
+        # sleep 60
+
+    - name: Esperar pela subida da API
+      run: |
+        for i in {1..30}; do
+          if curl -s http://localhost:7020 > /dev/null; then
+            echo "API disponível"
+            exit 0
+          fi
+          echo "A aguardar..."
+          sleep 3
+        done
+        echo "API não respondeu a tempo." >&2
+        exit 1
 
     - name: Run ZAP Baseline Scan via Docker
       run: |
