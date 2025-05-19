@@ -16,7 +16,12 @@ jobs:
     - name: Set up Docker Compose
       run: |
         docker compose -f docker-compose.yml up -d
-        sleep 15
+        sleep 30
+
+    - name: Testar manualmente a aplicação
+      run: |
+        echo "Testar localhost:7020..."
+        curl http://localhost:7020 || (echo " Falhou ligação à aplicação!" && exit 1)
 
     - name: Run ZAP Baseline Scan via Docker
       run: |
