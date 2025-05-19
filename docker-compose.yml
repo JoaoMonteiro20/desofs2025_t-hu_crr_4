@@ -3,7 +3,7 @@ version: '3.9'
 services:
   ecoimpact-api:
     build:
-      context: ./EcoImpact.API
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8080:80"  # usar porta 80 interna, 8080 externa
