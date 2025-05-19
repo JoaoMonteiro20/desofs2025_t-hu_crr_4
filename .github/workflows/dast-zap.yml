@@ -25,5 +25,14 @@ jobs:
       with:
         target: "http://localhost:8080"
 
+    - name: Upload ZAP Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: zapscan  # nome (válido!)
+        path: |
+          report_json.json
+          report_md.md
+          report_html.html
+
     - name: Stop containers
-      run: docker-compose down
+      run: docker compose down
