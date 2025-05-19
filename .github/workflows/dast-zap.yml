@@ -1,6 +1,8 @@
 name: DAST - OWASP ZAP
 
 on:
+  push:
+    branches: [ feature-DAST ]
   workflow_dispatch:
 
 jobs:
