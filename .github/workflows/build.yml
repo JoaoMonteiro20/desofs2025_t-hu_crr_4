@@ -37,7 +37,9 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report
-        path: TestResults/coverage.xml
+        path: ./EcoImpact.Tests/TestResults/coverage.xml
+
+
 
   sonarcloud:
     name: SAST - SonarCloud Scan
