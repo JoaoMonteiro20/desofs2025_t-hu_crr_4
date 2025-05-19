@@ -6,6 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:5000" # usar porta 80 interna, 8080 externa
+      - "8080:8080" # usar porta 80 interna, 8080 externa
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
