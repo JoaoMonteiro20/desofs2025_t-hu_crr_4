@@ -46,7 +46,7 @@ jobs:
       uses: SonarSource/sonarcloud-github-action@v2
       with:
         projectBaseDir: .
-        organization: joaomonteiro20
+        organization: desofs2025_t-hu_crr_4
         projectKey: JoaoMonteiro20_desofs2025_t-hu_crr_4
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
