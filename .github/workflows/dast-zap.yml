@@ -16,7 +16,7 @@ jobs:
     - name: Set up Docker Compose
       run: |
         docker compose -f docker-compose.yml up -d
-        sleep 30
+        sleep 60
 
     - name: Testar manualmente a aplicação
       run: |
