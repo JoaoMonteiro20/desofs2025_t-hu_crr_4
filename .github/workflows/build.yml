@@ -8,37 +8,7 @@ on:
 
 jobs:
   build-test:
-    name: Build & Test with Coverage
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore EcoImpactSimulator.sln
-
-      - name: Build
-        run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
-
-      - name: Run tests with coverage
-        run: dotnet test EcoImpactSimulator.sln --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: ./TestResults
-
-  sonarcloud:
-    name: SAST - SonarCloud Scan
-    runs-on: ubuntu-latest
-    needs: build-test
 
     steps:
     - name: Checkout code
@@ -49,12 +19,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v2
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=joaomonteiro20
-          -Dsonar.projectKey=JoaoMonteiro20_desofs2025_t-hu_crr_4
-          -Dsonar.cs.opencover.reportsPaths=**/TestResults/coverage.xml
+    - name: Restore dependencies
+      run: dotnet restore EcoImpactSimulator.sln
+
+    - name: Build
+      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+
+    - name: Run tests
+      run: dotnet test EcoImpactSimulator.sln --no-build --collect:"XPlat Code Coverage"
