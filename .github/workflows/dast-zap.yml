@@ -2,43 +2,39 @@ name: DAST - OWASP ZAP
 
 on:
   push:
-    branches: [ feature-DAST ]
+    branches:
+      - feature-DAST
   workflow_dispatch:
 
 jobs:
   dast:
+    name: Run OWASP ZAP Baseline Scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Compose
-      run: |
-        docker compose -f docker-compose.yml up -d
-        # sleep 60
+      - name: Start containers
+        run: docker compose up -d
 
-    - name: Esperar pela subida da API
-      run: |
-        for i in {1..30}; do
-          if curl -s http://localhost:7020 > /dev/null; then
-            echo "API disponível"
-            exit 0
-          fi
-          echo "A aguardar..."
-          sleep 3
-        done
-        echo "API não respondeu a tempo." >&2
-        exit 1
+      - name: Wait for API to be ready
+        run: sleep 15
 
-    - name: Run ZAP Baseline Scan via Docker
-      run: |
-        mkdir zap-results
-        docker run --rm \
-          -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
-          ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-          -t http://localhost:7020 \
-          -r zap-report.html
+      - name: Run ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: "http://localhost:7020"
+          cmd_options: '-a'
 
-    - name: Tear down Docker Compose
-      run: docker compose -f docker-compose.yml down
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zapscan
+          path: |
+            report_json.json
+            report_md.md
+            report_html.html
+
+      - name: Stop containers
+        run: docker compose -f docker-compose.yml down
