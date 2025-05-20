@@ -1,6 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directory: "/" # Raiz onde está o .sln
+    directory: "/" # root
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    open-pull-requests-limit: 5
