@@ -1,7 +1,16 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directory: "/" # root
+    directory: "/EcoImpact.API"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+
+  - package-ecosystem: "nuget"
+    directory: "/EcoImpact.DataModel"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "nuget"
+    directory: "/EcoImpact.Tests"
+    schedule:
+      interval: "weekly"
