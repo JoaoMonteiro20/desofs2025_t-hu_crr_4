@@ -27,17 +27,27 @@ jobs:
         run: |
             curl -v http://localhost:7020 || echo "API não respondeu"
 
-
-      - name: Run ZAP Baseline Scan via Docker
+      - name: Run ZAP Baseline Scan
         run: |
+          mkdir -p zap-results
           docker run --rm \
+            -u root \
             -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:7020 \
-            -J zap-report.json \
-            -w zap-report.md \
-            -r zap-report.html \
-            -a
+            -r zap-report.html
+
+
+      # - name: Run ZAP Baseline Scan via Docker
+      #   run: |
+      #     docker run --rm \
+      #       -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
+      #       ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+      #       -t http://localhost:7020 \
+      #       -J zap-report.json \
+      #       -w zap-report.md \
+      #       -r zap-report.html \
+      #       -a
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
