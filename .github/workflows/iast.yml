@@ -2,7 +2,7 @@ name: Simulated IAST with .NET
 
 on:
   push:
-    branches: [ main ]
+    branches: [ feature-iast ]
   pull_request:
     branches: [ main ]
 
