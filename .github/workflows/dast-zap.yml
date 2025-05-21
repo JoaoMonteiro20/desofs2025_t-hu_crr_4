@@ -23,6 +23,11 @@ jobs:
       - name: Criar diretório para os relatórios
         run: mkdir zap-results
 
+      - name: Verificar se API está a responder
+        run: |
+            curl -v http://localhost:7020 || echo "API não respondeu"
+
+
       - name: Run ZAP Baseline Scan via Docker
         run: |
           docker run --rm \

@@ -76,12 +76,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-////////
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(7020); // Porta que definiste no Docker
-});
-///////////
+//////////
+//builder.WebHost.ConfigureKestrel(options =>
+//{
+//    options.ListenAnyIP(7020); // Porta que definiste no Docker
+//});
+/////////////
 
 var app = builder.Build();
 
@@ -92,7 +92,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseMiddleware<ErrorHandlingMiddleware>();
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
