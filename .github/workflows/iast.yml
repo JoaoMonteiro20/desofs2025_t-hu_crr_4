@@ -1,13 +1,14 @@
-name: Simulated IAST with .NET
+name: IAST - Simulated Test Analysis
 
 on:
   push:
-    branches: [ feature-iast ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  simulate-iast:
+  iast:
+    name: Run Simulated IAST
     runs-on: ubuntu-latest
 
     steps:
@@ -22,16 +23,19 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore EcoImpactSimulator.sln
 
-    - name: Build with logging instrumentation
+    - name: Build the solution
       run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-    - name: Run tests (Simulated IAST)
+    - name: Run tests and collect results
       run: |
-        mkdir iast-logs
-        dotnet test EcoImpactSimulator.sln --no-build --logger "trx;LogFileName=iast-logs/TestResults.trx"
+        mkdir test-results
+        dotnet test EcoImpactSimulator.sln \
+          --logger "trx;LogFileName=test-results/test_results.trx" \
+          --results-directory test-results
 
-    - name: Archive IAST logs
-      uses: actions/upload-artifact@v3
+    - name: Upload test results (simulated runtime analysis)
+      uses: actions/upload-artifact@v2
       with:
-        name: iast-logs
-        path: iast-logs
+        name: iast-results
+        path: test-results
+
