@@ -27,14 +27,14 @@ jobs:
           target: "http://localhost:7020"
           cmd_options: '-a'
 
-      # - name: Upload ZAP Report
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: zapscan
-      #     path: |
-      #       report_json.json
-      #       report_md.md
-      #       report_html.html
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zapscan
+          path: |
+            report_json.json
+            report_md.md
+            report_html.html
 
       - name: Stop containers
         run: docker compose -f docker-compose.yml down
