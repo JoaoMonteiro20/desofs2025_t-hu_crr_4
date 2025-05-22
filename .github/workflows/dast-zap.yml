@@ -27,16 +27,19 @@ jobs:
         run: |
             curl -v http://localhost:7020 || echo "API não respondeu"
 
-      - name: Run ZAP Baseline Scan
+      - name: Criar diretório para resultados ZAP
+        run: mkdir -p zap-results
+
+      - name: Run ZAP Baseline Scan via Docker
         run: |
-          mkdir zap-results
           docker run --rm \
-            --network="host" \
             -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://host.docker.internal:7020 \
-            -r zap-report.html
-
+            -t http://localhost:7020 \
+            -r zap-report.html \
+            -J zap-report.json \
+            -w zap-report.md \
+            -a
 
 
       # - name: Run ZAP Baseline Scan via Docker
