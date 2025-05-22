@@ -29,13 +29,14 @@ jobs:
 
       - name: Run ZAP Baseline Scan
         run: |
-          mkdir -p zap-results
+          mkdir zap-results
           docker run --rm \
-            -u root \
+            --network="host" \
             -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://localhost:7020 \
+            -t http://host.docker.internal:7020 \
             -r zap-report.html
+
 
 
       # - name: Run ZAP Baseline Scan via Docker
