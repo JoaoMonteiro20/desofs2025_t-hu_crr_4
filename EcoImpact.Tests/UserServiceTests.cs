@@ -1,5 +1,6 @@
 ﻿using EcoImpact.API.Services;
 using EcoImpact.DataModel;
+using EcoImpact.DataModel.Dtos;
 using EcoImpact.DataModel.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EcoImpact.Tests.Services
+namespace EcoImpact.Tests
 {
     [TestClass]
     public class UserServiceTests
@@ -139,9 +140,44 @@ namespace EcoImpact.Tests.Services
 
             Assert.IsFalse(result);
         }
+
+        [TestMethod]
+        public async Task ExportUsersAsJsonFileAsync_ShouldReturnValidJsonFile()
+        {
+            // Arrange: usar EF in-memory só neste teste
+            var options = new DbContextOptionsBuilder<EcoDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) 
+                .Options;
+
+            var context = new EcoDbContext(options);
+
+            context.Users.AddRange(new List<User>
+    {
+        new User { UserId = Guid.NewGuid(), UserName = "admin", Email = "admin@example.com", Role = UserRole.Admin, Password = "xxx" },
+        new User { UserId = Guid.NewGuid(), UserName = "user1", Email = "user1@example.com", Role = UserRole.User, Password = "yyy" }
+    });
+            await context.SaveChangesAsync();
+
+            var service = new UserService(context, _passwordServiceMock.Object, NullLogger<UserService>.Instance);
+
+            // Act
+            var result = await service.ExportUsersAsJsonFileAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("application/json", result.ContentType);
+            Assert.AreEqual("users_export.json", result.FileName);
+            Assert.IsTrue(result.FileContent.Length > 0);
+
+            var json = System.Text.Json.JsonSerializer.Deserialize<List<UserExportDto>>(result.FileContent);
+            Assert.IsNotNull(json);
+            Assert.AreEqual(2, json!.Count);
+            Assert.IsTrue(json.Any(u => u.UserName == "admin"));
+            Assert.IsTrue(json.Any(u => u.UserName == "user1"));
+        }
     }
 
-    // Simulador de IAsyncEnumerator<T> para ToListAsync() funcionar nos mocks
+   
     public class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IEnumerator<T> _inner;

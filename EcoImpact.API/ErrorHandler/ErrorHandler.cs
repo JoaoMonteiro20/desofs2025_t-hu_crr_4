@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -22,18 +23,42 @@ public class ErrorHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro não tratado na API");
-
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            context.Response.ContentType = "application/json";
-
-            var response = new
+            if (context.Response.HasStarted)
             {
-                error = "Erro interno do servidor",
-                details = "Ocorreu um erro inesperado. Tente novamente mais tarde."
+                _logger.LogWarning("A resposta já foi iniciada, não é possível manipular o erro.");
+                throw;
+            }
+
+            context.Response.Clear();
+            context.Response.ContentType = "application/json; charset=utf-8";
+
+            var (statusCode, title) = ex switch
+            {
+                ArgumentException or ValidationException => (HttpStatusCode.BadRequest, "Dados inválidos"),
+                KeyNotFoundException => (HttpStatusCode.NotFound, "Recurso não encontrado"),
+                UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Não autorizado"),
+                _ => (HttpStatusCode.InternalServerError, "Erro interno do servidor")
             };
 
-            var json = JsonSerializer.Serialize(response);
+            context.Response.StatusCode = (int)statusCode;
+
+            _logger.Log(
+                statusCode == HttpStatusCode.InternalServerError ? LogLevel.Error : LogLevel.Warning,
+                ex,
+                "Erro tratado pelo middleware: {Message}",
+                ex.Message
+            );
+
+            var problem = new
+            {
+                type = $"https://httpstatuses.io/{(int)statusCode}",
+                title,
+                status = (int)statusCode,
+                detail = ex.Message,
+                instance = context.Request.Path
+            };
+
+            var json = JsonSerializer.Serialize(problem);
             await context.Response.WriteAsync(json);
         }
     }

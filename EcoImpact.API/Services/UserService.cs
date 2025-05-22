@@ -3,6 +3,10 @@ using EcoImpact.DataModel.Models;
 using EcoImpact.DataModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EcoImpact.DataModel.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Text;
 
 public class UserService : IUserService
 {
@@ -79,5 +83,28 @@ public class UserService : IUserService
 
         _logger.LogInformation("Utilizador com ID {UserId} eliminado com sucesso", id);
         return true;
+    }
+
+    public async Task<UserFileExportResult> ExportUsersAsJsonFileAsync()
+    {
+        var users = await _context.Users
+            .Select(u => new UserExportDto
+            {
+                Id = u.UserId,
+                UserName = u.UserName,
+                Email = u.Email,
+                Role = (int)u.Role
+            })
+            .ToListAsync();
+
+        var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+        var jsonBytes = Encoding.UTF8.GetBytes(json);
+
+        return new UserFileExportResult
+        {
+            FileContent = jsonBytes,
+            ContentType = "application/json",
+            FileName = "users_export.json"
+        };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using EcoImpact.DataModel;
 using EcoImpact.DataModel.Models;
+using EcoImpact.API.Mapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,14 +10,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Text;
+using System.Text.Json;
 
-namespace EcoImpact.Tests.Services
+namespace EcoImpact.Tests
 {
     [TestClass]
     public class HabitTypeServiceTests
     {
         private Mock<DbSet<HabitType>> _mockSet = null!;
         private Mock<EcoDbContext> _mockContext = null!;
+        private Mock<IHabitTypeMapper> _mockMapper = null!;
         private HabitTypeService _service = null!;
 
         private static Mock<DbSet<T>> CreateMockDbSet<T>(IEnumerable<T> data) where T : class
@@ -40,17 +45,21 @@ namespace EcoImpact.Tests.Services
             _mockContext.Setup(c => c.HabitTypes).Returns(_mockSet.Object);
             _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-            _service = new HabitTypeService(_mockContext.Object, NullLogger<HabitTypeService>.Instance);
+            _mockMapper = new Mock<IHabitTypeMapper>();
+            _service = new HabitTypeService(_mockContext.Object, NullLogger<HabitTypeService>.Instance, _mockMapper.Object);
         }
 
         [TestMethod]
         public async Task CreateAsync_ShouldAddHabitType()
         {
             var dto = new HabitTypeDto { Name = "Transporte", Unit = "km", Factor = 0.21M };
+            var habitEntity = new HabitType { HabitTypeId = Guid.NewGuid(), Name = dto.Name, Unit = dto.Unit, Factor = dto.Factor };
+
+            _mockMapper.Setup(m => m.ToEntity(dto)).Returns(habitEntity);
 
             var result = await _service.CreateAsync(dto);
 
-            _mockSet.Verify(m => m.Add(It.IsAny<HabitType>()), Times.Once);
+            _mockSet.Verify(m => m.Add(It.Is<HabitType>(h => h.Name == dto.Name)), Times.Once);
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
             Assert.AreEqual(dto.Name, result.Name);
@@ -58,17 +67,20 @@ namespace EcoImpact.Tests.Services
             Assert.AreEqual(dto.Factor, result.Factor);
         }
 
-
         [TestMethod]
         public async Task GetByIdAsync_ShouldReturnHabitType_WhenExists()
         {
             var habit = new HabitType { HabitTypeId = Guid.NewGuid(), Name = "Comida", Unit = "kg", Factor = 0.8M };
+            var dto = new HabitTypeDto { Name = habit.Name, Unit = habit.Unit, Factor = habit.Factor };
+
             _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
                     .ReturnsAsync((object[] ids) =>
                     {
                         var id = (Guid)ids[0];
                         return id == habit.HabitTypeId ? habit : null;
                     });
+
+            _mockMapper.Setup(m => m.ToDto(habit)).Returns(dto);
 
             var result = await _service.GetByIdAsync(habit.HabitTypeId);
 
@@ -93,6 +105,15 @@ namespace EcoImpact.Tests.Services
             _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>())).ReturnsAsync(habit);
 
             var dto = new HabitTypeDto { Name = "Alimentação", Unit = "g", Factor = 1.2M };
+
+            var updatedDto = new HabitTypeDto
+            {
+                Name = dto.Name,
+                Unit = dto.Unit,
+                Factor = dto.Factor
+            };
+
+            _mockMapper.Setup(m => m.ToDto(habit)).Returns(updatedDto);
 
             var result = await _service.UpdateAsync(habit.HabitTypeId, dto);
 
@@ -136,6 +157,45 @@ namespace EcoImpact.Tests.Services
             var result = await _service.DeleteAsync(Guid.NewGuid());
 
             Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public async Task ImportFromFileAsync_ShouldImportHabitTypes()
+        {
+            var dtos = new List<HabitTypeDto>
+    {
+        new HabitTypeDto { Name = "Dieta", Unit = "kg", Factor = 0.6M },
+        new HabitTypeDto { Name = "Luz", Unit = "kWh", Factor = 0.3M }
+    };
+
+            var jsonContent = JsonSerializer.Serialize(dtos);
+            var byteArray = Encoding.UTF8.GetBytes(jsonContent);
+            var stream = new MemoryStream(byteArray);
+            var formFile = new FormFile(stream, 0, byteArray.Length, "file", "habits.json")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "application/json"
+            };
+
+            foreach (var dto in dtos)
+            {
+                _mockMapper.Setup(m => m.ToEntity(dto)).Returns(new HabitType
+                {
+                    HabitTypeId = Guid.NewGuid(),
+                    Name = dto.Name,
+                    Unit = dto.Unit,
+                    Factor = dto.Factor
+                });
+            }
+
+            _mockSet.Setup(m => m.AddRange(It.IsAny<IEnumerable<HabitType>>()));
+            _mockContext.Setup(c => c.HabitTypes).Returns(_mockSet.Object);
+
+            var result = await _service.ImportFromFileAsync(formFile);
+
+            Assert.IsTrue(result.Contains("2 habit types imported successfully."));
+            _mockSet.Verify(m => m.AddRange(It.IsAny<IEnumerable<HabitType>>()), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
