@@ -96,6 +96,9 @@ public class HabitTypeService : IHabitTypeService
 
     public async Task<string> ImportFromFileAsync(IFormFile file)
     {
+        if (!file.FileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Formato de ficheiro inválido. Apenas ficheiros .json são permitidos.");
+
         using var reader = new StreamReader(file.OpenReadStream());
         var content = await reader.ReadToEndAsync();
 

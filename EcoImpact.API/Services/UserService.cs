@@ -96,6 +96,8 @@ public class UserService : IUserService
                 Role = (int)u.Role
             })
             .ToListAsync();
+        if (users.Count == 0)
+            throw new InvalidOperationException("Não existem utilizadores para exportar.");
 
         var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
         var jsonBytes = Encoding.UTF8.GetBytes(json);
