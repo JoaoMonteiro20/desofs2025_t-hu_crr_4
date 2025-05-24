@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Text;
 using System.Text.Json;
+using EcoImpact.API.Services;
 
 namespace EcoImpact.Tests
 {
@@ -33,6 +34,15 @@ namespace EcoImpact.Tests
             mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
             mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
             return mockSet;
+        }
+
+        private EcoDbContext CreateEmptyInMemoryContext()
+        {
+            var options = new DbContextOptionsBuilder<EcoDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // garante base isolada por teste
+                .Options;
+
+            return new EcoDbContext(options);
         }
 
         [TestInitialize]
@@ -163,10 +173,10 @@ namespace EcoImpact.Tests
         public async Task ImportFromFileAsync_ShouldImportHabitTypes()
         {
             var dtos = new List<HabitTypeDto>
-    {
+        {
         new HabitTypeDto { Name = "Dieta", Unit = "kg", Factor = 0.6M },
         new HabitTypeDto { Name = "Luz", Unit = "kWh", Factor = 0.3M }
-    };
+        };
 
             var jsonContent = JsonSerializer.Serialize(dtos);
             var byteArray = Encoding.UTF8.GetBytes(jsonContent);
@@ -196,6 +206,28 @@ namespace EcoImpact.Tests
             Assert.IsTrue(result.Contains("2 habit types imported successfully."));
             _mockSet.Verify(m => m.AddRange(It.IsAny<IEnumerable<HabitType>>()), Times.Once);
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ExportUsers_Should_Not_Include_Password()
+        {
+            var context = CreateEmptyInMemoryContext();
+            context.Users.Add(new User
+            {
+                UserId = Guid.NewGuid(),
+                UserName = "exporteduser",
+                Email = "u@example.com",
+                Password = "superhashed",
+                Role = UserRole.User
+            });
+            await context.SaveChangesAsync();
+
+            var service = new UserService(context, new Mock<IPasswordService>().Object, NullLogger<UserService>.Instance);
+
+            var export = await service.ExportUsersAsJsonFileAsync();
+            var json = System.Text.Encoding.UTF8.GetString(export.FileContent);
+
+            Assert.IsFalse(json.Contains("Password"));
         }
     }
 }
