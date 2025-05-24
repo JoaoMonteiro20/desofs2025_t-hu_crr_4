@@ -62,11 +62,10 @@ jobs:
 
       - name: Test with coverage
         run: |
-          dotnet test EcoImpactSimulator.sln --no-build --configuration Release `
+          dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj --no-build --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=coverage/coverage `
-            /p:Exclude="[EcoImpact.Tests*]*"
+            /p:CoverletOutput=../coverage/coverage.cobertura.xml
 
       - name: Verificar relatório de cobertura
         run: dir coverage
@@ -78,6 +77,7 @@ jobs:
         run: |
           .\.sonar\scanner\dotnet-sonarscanner end `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
 
 
 ###########################################
