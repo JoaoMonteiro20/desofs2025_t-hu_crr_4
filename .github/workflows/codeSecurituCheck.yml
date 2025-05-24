@@ -2,7 +2,7 @@ name: CodeQL Security Scan
 
 on:
   push:
-    branches: [main]
+    branches: [feature-codeSecurityCheck]
   pull_request:
     branches: [main]
     paths-ignore:
@@ -12,6 +12,7 @@ on:
       - '**/*.yml'
   schedule:
     - cron: '0 1 * * 1,5' # segundas e sextas às 01:00 UTC
+  workflow_dispatch:
 
 jobs:
   codeql-analysis:
