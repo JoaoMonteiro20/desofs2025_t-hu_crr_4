@@ -65,7 +65,7 @@ jobs:
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj --no-build --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=../coverage/coverage.cobertura.xml
+            /p:CoverletOutput=coverage/coverage.cobertura.xml
 
       - name: Verificar relatório de cobertura
         run: dir coverage
