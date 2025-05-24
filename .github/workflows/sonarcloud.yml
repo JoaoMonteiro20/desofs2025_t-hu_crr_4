@@ -60,12 +60,13 @@ jobs:
       - name: Criar diretório coverage
         run: mkdir coverage
 
-      - name: Test with coverage
+      - name: Test EcoImpact.Tests com cobertura em EcoImpact.API
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj --no-build --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=coverage/coverage.cobertura.xml
+            /p:CoverletOutput=../coverage/coverage.cobertura.xml `
+            /p:Include="[EcoImpact.API*]*"
 
       - name: Verificar relatório de cobertura
         run: dir coverage
@@ -77,6 +78,7 @@ jobs:
         run: |
           .\.sonar\scanner\dotnet-sonarscanner end `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
 
 
 
