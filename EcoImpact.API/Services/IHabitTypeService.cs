@@ -6,7 +6,7 @@ public interface IHabitTypeService
     Task<HabitTypeDto?> GetByIdAsync(Guid id);
     Task<HabitType> CreateAsync(HabitTypeDto dto);
 
-    Task<HabitTypeDto> UpdateAsync(Guid id,HabitTypeDto dto);
+    Task<HabitTypeDto?> UpdateAsync(Guid id,HabitTypeDto dto);
 
     Task<bool> DeleteAsync(Guid id);
     Task<string> ImportFromFileAsync(IFormFile file);

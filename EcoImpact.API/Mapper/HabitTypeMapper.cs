@@ -1,26 +1,29 @@
 ﻿using EcoImpact.API.Mapper;
 using EcoImpact.DataModel.Models;
 
-public class HabitTypeMapper : IHabitTypeMapper
+namespace EcoImpact.API.Mapper
 {
-    public HabitType ToEntity(HabitTypeDto dto)
+    public class HabitTypeMapper : IHabitTypeMapper
     {
-        return new HabitType
+        public HabitType ToEntity(HabitTypeDto dto)
         {
-            HabitTypeId = Guid.NewGuid(),
-            Name = dto.Name,
-            Factor = dto.Factor,
-            Unit = dto.Unit
-        };
-    }
+            return new HabitType
+            {
+                HabitTypeId = Guid.NewGuid(),
+                Name = dto.Name,
+                Factor = dto.Factor,
+                Unit = dto.Unit
+            };
+        }
 
-    public HabitTypeDto ToDto(HabitType entity)
-    {
-        return new HabitTypeDto
+        public HabitTypeDto ToDto(HabitType entity)
         {
-            Name = entity.Name,
-            Factor = entity.Factor,
-            Unit = entity.Unit
-        };
+            return new HabitTypeDto
+            {
+                Name = entity.Name,
+                Factor = entity.Factor,
+                Unit = entity.Unit
+            };
+        }
     }
 }

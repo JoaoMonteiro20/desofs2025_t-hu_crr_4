@@ -103,7 +103,7 @@ public class HabitTypeService : IHabitTypeService
         var content = await reader.ReadToEndAsync();
 
         var habitDtos = JsonSerializer.Deserialize<List<HabitTypeDto>>(content);
-        if (habitDtos == null || !habitDtos.Any())
+        if (habitDtos == null || habitDtos.Count == 0)
             throw new ArgumentException("O ficheiro está vazio ou contém dados inválidos.");
 
         var habitEntities = habitDtos.Select(dto => _mapper.ToEntity(dto)).ToList();

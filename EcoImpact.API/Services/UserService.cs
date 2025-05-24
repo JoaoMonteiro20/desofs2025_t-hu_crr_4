@@ -21,6 +21,12 @@ public class UserService : IUserService
         _logger = logger;
     }
 
+    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task<User> CreateAsync(User user)
     {
         _logger.LogInformation("Criando utilizador com username: {UserName}", user.UserName);
@@ -99,7 +105,7 @@ public class UserService : IUserService
         if (users.Count == 0)
             throw new InvalidOperationException("Não existem utilizadores para exportar.");
 
-        var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(users, _jsonOptions);
         var jsonBytes = Encoding.UTF8.GetBytes(json);
 
         return new UserFileExportResult
