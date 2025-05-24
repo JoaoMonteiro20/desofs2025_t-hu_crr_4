@@ -31,7 +31,7 @@ namespace EcoImpact.Tests
             return mockSet;
         }
 
-        private EcoDbContext CreateEmptyInMemoryContext()
+        private static EcoDbContext CreateEmptyInMemoryContext()
         {
             var options = new DbContextOptionsBuilder<EcoDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -40,7 +40,7 @@ namespace EcoImpact.Tests
             return new EcoDbContext(options);
         }
 
-        private IConfiguration MockJwtConfig()
+        private static IConfiguration MockJwtConfig()
         {
             var config = new Mock<IConfiguration>();
             config.Setup(c => c["Jwt:Key"]).Returns("very_secure_jwt_key_for_tests_12345"); // ≥ 32 chars

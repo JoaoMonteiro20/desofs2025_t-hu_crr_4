@@ -36,7 +36,7 @@ namespace EcoImpact.Tests
             return mockSet;
         }
 
-        private EcoDbContext CreateEmptyInMemoryContext()
+        private static EcoDbContext CreateEmptyInMemoryContext()
         {
             var options = new DbContextOptionsBuilder<EcoDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // garante base isolada por teste
