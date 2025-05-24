@@ -33,10 +33,10 @@ jobs:
       - name: Run ZAP Baseline Scan
         run: |
           docker run --rm \
-            --network="host" \
+            --network ecoimpact_default \ # <-- rede do docker-compose
             -v ${{ github.workspace }}/zap-results:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://localhost:7020 \
+            -t http://ecoimpact-api:7020 \
             -r zap-report.html
 
 
