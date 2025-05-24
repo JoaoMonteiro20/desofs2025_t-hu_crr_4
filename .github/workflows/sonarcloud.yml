@@ -57,17 +57,14 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-      - name: Run tests with coverage
+      - name: Run tests with Coverlet (OpenCover output)
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
             --no-build `
             --configuration Release `
-            --collect:"XPlat Code Coverage"
-
-      - name: Rename coverage file to expected path
-        shell: powershell
-        run: |
-          Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Select-Object -First 1 | Copy-Item -Destination "EcoImpact.Tests/TestResults/coverage.opencover.xml"
+            /p:CollectCoverage=true `
+            /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage.opencover.xml `
+            /p:CoverletOutputFormat=opencover
 
       - name: List TestResults folder (debug)
         run: dir EcoImpact.Tests/TestResults
