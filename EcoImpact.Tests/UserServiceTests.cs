@@ -145,9 +145,8 @@ namespace EcoImpact.Tests
         [TestMethod]
         public async Task ExportUsersAsJsonFileAsync_ShouldReturnValidJsonFile()
         {
-            // Arrange: usar EF in-memory só neste teste
             var options = new DbContextOptionsBuilder<EcoDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) 
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             var context = new EcoDbContext(options);
@@ -161,16 +160,20 @@ namespace EcoImpact.Tests
 
             var service = new UserService(context, _passwordServiceMock.Object, NullLogger<UserService>.Instance);
 
-            // Act
             var result = await service.ExportUsersAsJsonFileAsync();
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual("application/json", result.ContentType);
             Assert.AreEqual("users_export.json", result.FileName);
             Assert.IsTrue(result.FileContent.Length > 0);
 
-            var json = System.Text.Json.JsonSerializer.Deserialize<List<UserExportDto>>(result.FileContent);
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var json = System.Text.Json.JsonSerializer.Deserialize<List<UserExportDto>>(result.FileContent, jsonOptions);
+
             Assert.IsNotNull(json);
             Assert.AreEqual(2, json!.Count);
             Assert.IsTrue(json.Any(u => u.UserName == "admin"));
