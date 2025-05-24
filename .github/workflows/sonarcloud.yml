@@ -57,12 +57,16 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
+      - name: Criar diretório coverage
+        run: mkdir coverage
+
       - name: Test with coverage
         run: |
           dotnet test EcoImpactSimulator.sln --no-build --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutputFormat=cobertura `
-            /p:CoverletOutput=./coverage/coverage.cobertura.xml
+            /p:CoverletOutput=coverage/coverage `
+            /p:Exclude="[EcoImpact.Tests*]*"
 
       - name: Verificar relatório de cobertura
         run: dir coverage
