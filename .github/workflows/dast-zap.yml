@@ -30,16 +30,26 @@ jobs:
       - name: Criar diretório para resultados ZAP
         run: mkdir -p zap-results
 
-      - name: Run ZAP Baseline Scan via Docker
+      - name: Run ZAP Baseline Scan
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
+            --network="host" \
+            -v ${{ github.workspace }}/zap-results:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t http://localhost:7020 \
-            -r zap-report.html \
-            -J zap-report.json \
-            -w zap-report.md \
-            -a
+            -r zap-report.html
+
+
+      # - name: Run ZAP Baseline Scan via Docker
+      #   run: |
+      #     docker run --rm \
+      #       -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
+      #       ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+      #       -t http://localhost:7020 \
+      #       -r zap-report.html \
+      #       -J zap-report.json \
+      #       -w zap-report.md \
+      #       -a
 
 
       # - name: Run ZAP Baseline Scan via Docker
