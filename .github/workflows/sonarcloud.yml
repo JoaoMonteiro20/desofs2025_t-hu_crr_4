@@ -64,6 +64,9 @@ jobs:
             /p:CoverletOutputFormat=cobertura `
             /p:CoverletOutput=./coverage/coverage.cobertura.xml
 
+      - name: Verificar relatório de cobertura
+        run: dir coverage
+
       - name: End SonarCloud analysis
         shell: powershell
         env:
