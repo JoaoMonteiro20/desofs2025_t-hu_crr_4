@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
-  workflow_dispatch:  # rodar manualmente
+  workflow_dispatch:  # permite executar manualmente
 
 jobs:
   build-analyze:
@@ -56,6 +56,15 @@ jobs:
 
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+
+      - name: Run tests with coverage
+        run: |
+          dotnet test EcoImpact.Tests\EcoImpact.Tests.csproj `
+            --no-build `
+            --configuration Release `
+            /p:CollectCoverage=true `
+            /p:CoverletOutput=TestResults\coverage.xml `
+            /p:CoverletOutputFormat=opencover
 
       - name: End SonarCloud analysis
         shell: powershell
