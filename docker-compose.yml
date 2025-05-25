@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  ecoimpact-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7020:7020"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:7020
+
+networks:
+  default:
+    name: ecoimpact_default
+
+
+# version: '3.9'
+
+# services:
+#   ecoimpact-api:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "7020:7020" # usar porta 7020 interna, 7020 externa
+#     environment:
+#       - ASPNETCORE_ENVIRONMENT=Development

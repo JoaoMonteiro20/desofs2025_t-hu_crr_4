@@ -27,6 +27,7 @@ public class UserChoiceService : IUserChoiceService
             .Include(uc => uc.HabitType)
             .FirstOrDefaultAsync(uc => uc.UserChoiceId == id);
 
+        // alterado o método para calcular e adicionar o footprint
     public async Task<UserChoice> CreateAsync(UserChoiceDto dto)
     {
         var habitType = await _context.HabitTypes.FindAsync(dto.HabitTypeId);
@@ -34,6 +35,7 @@ public class UserChoiceService : IUserChoiceService
             throw new Exception("HabitType não encontrado.");
 
         var footprint = dto.Quantity * habitType.Factor;
+        var score = Math.Max(0, 100 - (footprint * 10)); // Exemplo de cálculo de EcoScore
 
         var choice = new UserChoice
         {
@@ -44,6 +46,15 @@ public class UserChoiceService : IUserChoiceService
             Date = dto.Date,
             Footprint = Math.Round(footprint, 2)
         };
+
+        var user = await _context.Users.FindAsync(dto.UserId);
+
+        if (user != null)
+        {
+            user.EcoScore += score;
+            _context.Users.Update(user);
+        }
+
 
         _context.UserChoices.Add(choice);
         await _context.SaveChangesAsync();
