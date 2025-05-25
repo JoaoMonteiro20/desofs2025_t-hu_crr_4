@@ -77,4 +77,12 @@ public class HabitTypesController : ControllerBase
         _logger.LogInformation("HabitType com ID {Id} eliminado com sucesso", id);
         return NoContent();
     }
+
+    [HttpPost("import")]
+    [Authorize(Roles = "Admin,Moderator")]
+    public async Task<IActionResult> ImportHabitTypes(IFormFile file)
+    {
+        var result = await _habitService.ImportFromFileAsync(file);
+        return Ok(result);
+    }
 }

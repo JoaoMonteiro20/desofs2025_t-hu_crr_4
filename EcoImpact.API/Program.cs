@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using EcoImpact.API.Services;
+using EcoImpact.API.Mapper;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,33 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse(); // impede resposta automática padrão
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.ContentType = "application/json";
+            var response = new
+            {
+                error = "Não autenticado",
+                detail = "Token inválido ou ausente."
+            };
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        },
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            context.Response.ContentType = "application/json";
+            var response = new
+            {
+                error = "Acesso negado",
+                detail = "Você não tem permissão para executar esta ação."
+            };
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
+    };
 });
 
 builder.Services.AddSingleton<IPasswordService, PasswordService>();
@@ -32,6 +61,11 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
 builder.Services.AddScoped<IUserChoiceService, UserChoiceService>();
+builder.Services.AddScoped<IHabitTypeMapper, HabitTypeMapper>();
+builder.Services.AddSingleton(new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+});
 
 
 // Database
@@ -76,12 +110,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-//////////
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    options.ListenAnyIP(7020); // Porta que definiste no Docker
-//});
-/////////////
 
 var app = builder.Build();
 

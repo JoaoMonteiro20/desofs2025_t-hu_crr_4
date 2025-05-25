@@ -8,4 +8,5 @@ public interface IUserService
     Task<bool> DeleteAsync(Guid id);
 
     Task<bool> UpdateAsync(Guid id, User updatedUser);
+    Task<UserFileExportResult> ExportUsersAsJsonFileAsync();
 }

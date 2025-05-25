@@ -25,7 +25,13 @@ namespace EcoImpact.DataModel.Models
         public ICollection<UserChoice> UserChoices { get; set; } = new List<UserChoice>();
         public ICollection<FootprintSummary> Summaries { get; set; } = new List<FootprintSummary>();
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+<<<<<<< HEAD
         // add EcoScore property to user model
         public double EcoScore { get; set; } = 0;
+=======
+
+        public int FailedLoginAttempts { get; set; } = 0;
+        public DateTime? LockoutEnd { get; set; } = null;
+>>>>>>> 00acf455a73b746fd2fca7990fa69a792ae0db75
     }
 }

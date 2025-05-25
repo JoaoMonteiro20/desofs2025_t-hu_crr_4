@@ -40,19 +40,40 @@ public class AuthenticationService : IAuthenticationService
             return null;
         }
 
+        if (user.LockoutEnd != null && user.LockoutEnd > DateTime.UtcNow)
+        {
+            _logger.LogWarning("Utilizador {Username} está temporariamente bloqueado até {LockoutEnd}", username, user.LockoutEnd);
+            throw new InvalidOperationException("Utilizador bloqueado temporariamente por múltiplas tentativas falhadas.");
+        }
+
         if (!_passwordService.VerifyPassword(user, user.Password, password))
         {
-            _logger.LogWarning("Password incorreta para utilizador: {Username}", username);
+            user.FailedLoginAttempts++;
+
+            _logger.LogWarning("Password incorreta para utilizador: {Username}. Tentativa {Count}/4", username, user.FailedLoginAttempts);
+
+            if (user.FailedLoginAttempts >= 4)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(10);
+                _logger.LogWarning("Utilizador {Username} foi bloqueado até {LockoutEnd}", username, user.LockoutEnd);
+            }
+
+            await _context.SaveChangesAsync();
             return null;
         }
 
-        _logger.LogInformation("Autenticação bem-sucedida para utilizador: {Username} com role: {Role}", user.UserName, user.Role);
+        _logger.LogInformation("Autenticação bem-sucedida para utilizador: {Username}", user.UserName);
 
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
+        await _context.SaveChangesAsync();
+
+        // Gerar JWT
         var claims = new[]
         {
-            new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
-        };
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.Role, user.Role.ToString())
+    };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

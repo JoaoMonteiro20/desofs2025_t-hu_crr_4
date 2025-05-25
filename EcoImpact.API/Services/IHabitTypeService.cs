@@ -2,11 +2,12 @@
 
 public interface IHabitTypeService
 {
-    Task<IEnumerable<HabitType>> GetAllAsync();
-    Task<HabitType?> GetByIdAsync(Guid id);
+    Task<IEnumerable<HabitTypeDto>> GetAllAsync();
+    Task<HabitTypeDto?> GetByIdAsync(Guid id);
     Task<HabitType> CreateAsync(HabitTypeDto dto);
 
-    Task<HabitType> UpdateAsync(Guid id,HabitTypeDto dto);
+    Task<HabitTypeDto?> UpdateAsync(Guid id,HabitTypeDto dto);
 
     Task<bool> DeleteAsync(Guid id);
+    Task<string> ImportFromFileAsync(IFormFile file);
 }

@@ -3,18 +3,28 @@ using EcoImpact.DataModel.Models;
 using EcoImpact.DataModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EcoImpact.DataModel.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Text;
 
 public class UserService : IUserService
 {
     private readonly EcoDbContext _context;
     private readonly IPasswordService _passwordService;
     private readonly ILogger<UserService> _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
 
-    public UserService(EcoDbContext context, IPasswordService passwordService, ILogger<UserService> logger)
+    public UserService(
+        EcoDbContext context,
+        IPasswordService passwordService,
+        ILogger<UserService> logger,
+        JsonSerializerOptions jsonOptions)
     {
         _context = context;
         _passwordService = passwordService;
         _logger = logger;
+        _jsonOptions = jsonOptions;
     }
 
     public async Task<User> CreateAsync(User user)
@@ -79,5 +89,31 @@ public class UserService : IUserService
 
         _logger.LogInformation("Utilizador com ID {UserId} eliminado com sucesso", id);
         return true;
+    }
+
+    public async Task<UserFileExportResult> ExportUsersAsJsonFileAsync()
+    {
+        var users = await _context.Users
+            .Select(u => new UserExportDto
+            {
+                Id = u.UserId,
+                UserName = u.UserName,
+                Email = u.Email,
+                Role = (int)u.Role
+            })
+            .ToListAsync();
+
+        if (users.Count == 0)
+            throw new InvalidOperationException("Não existem utilizadores para exportar.");
+
+        var json = JsonSerializer.Serialize(users, _jsonOptions);
+        var jsonBytes = Encoding.UTF8.GetBytes(json);
+
+        return new UserFileExportResult
+        {
+            FileContent = jsonBytes,
+            ContentType = "application/json",
+            FileName = "users_export.json"
+        };
     }
 }

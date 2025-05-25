@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# User-specific files
+*.user
+*.suo
+*.pfx
+*.key
+*.secret
+
+# Build results
+bin/
+obj/
+TestResults/
+coverage/
+*.coverage
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Docker
+.dockerignore
+Dockerfile
+
+# Configs
+*.env
+appsettings*.json

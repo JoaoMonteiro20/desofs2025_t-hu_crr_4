@@ -54,4 +54,12 @@ public class UsersController : ControllerBase
         var success = await _userService.DeleteAsync(id);
         return success ? NoContent() : NotFound();
     }
+
+    [Authorize(Roles = "Admin,Moderator")]
+    [HttpGet("export-json")]
+    public async Task<IActionResult> ExportUsersJson()
+    {
+        var result = await _userService.ExportUsersAsJsonFileAsync();
+        return File(result.FileContent, result.ContentType, result.FileName);
+    }
 }
