@@ -57,6 +57,9 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
+      - name: Ensure TestResults folder exists
+        run: mkdir EcoImpact.Tests/TestResults
+
       - name: Run tests with Coverlet (OpenCover output)
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
@@ -64,20 +67,17 @@ jobs:
             --configuration Release `
             /p:CollectCoverage=true `
             /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage `
-            /p:CoverletOutputFormat=opencover `
-            /p:MergeWith=""
+            /p:CoverletOutputFormat=opencover
 
       - name: Confirm coverage file exists
         shell: pwsh
         run: |
           if (Test-Path "EcoImpact.Tests/TestResults/coverage.opencover.xml") {
-            Write-Host "✅ Coverage file exists"
+            Write-Host "Coverage file exists"
           } else {
-            Write-Error "❌ coverage.opencover.xml NOT found"
+            Write-Error "coverage.opencover.xml NOT found"
+            exit 1
           }
-
-      - name: List TestResults folder (debug)
-        run: dir EcoImpact.Tests/TestResults
 
       - name: End SonarCloud analysis
         shell: powershell
