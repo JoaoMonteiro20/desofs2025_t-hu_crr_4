@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
-  workflow_dispatch:  # permite executar manualmente
+  workflow_dispatch:
 
 jobs:
   build-analyze:
@@ -28,28 +28,28 @@ jobs:
         id: cache-sonar-scanner
         uses: actions/cache@v3
         with:
-          path: .\.sonar\scanner
+          path: .sonar/scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
 
-      - name: Install SonarCloud scanner (if needed)
+      - name: Install SonarCloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
-          New-Item -Path .\.sonar\scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+          New-Item -Path .sonar/scanner -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path .sonar/scanner
 
       - name: Begin SonarCloud analysis
         shell: powershell
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin `
+          .sonar/scanner/dotnet-sonarscanner begin `
             /k:"JoaoMonteiro20_desofs2025_t-hu_crr_4" `
             /o:"joaomonteiro20" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="EcoImpact.Tests\TestResults\coverage.xml"
+            /d:sonar.cs.opencover.reportsPaths="EcoImpact.Tests/TestResults/coverage.opencover.xml"
 
       - name: Restore dependencies
         run: dotnet restore EcoImpactSimulator.sln
@@ -57,19 +57,22 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-      - name: Run tests with coverage
+      - name: Run tests with Coverlet (OpenCover output)
         run: |
-          dotnet test EcoImpact.Tests\EcoImpact.Tests.csproj `
+          dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults\coverage.xml `
+            /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage.opencover.xml `
             /p:CoverletOutputFormat=opencover
+
+      - name: List TestResults folder (debug)
+        run: dir EcoImpact.Tests/TestResults
 
       - name: End SonarCloud analysis
         shell: powershell
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner end `
+          .sonar/scanner/dotnet-sonarscanner end `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
