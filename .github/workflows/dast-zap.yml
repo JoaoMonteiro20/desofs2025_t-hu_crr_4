@@ -32,13 +32,29 @@ jobs:
 
       - name: Run ZAP Baseline Scan
         run: |
+          mkdir -p zap-results
           docker run --rm \
             --network ecoimpact_default \
-            -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://ecoimpact-api:7020 \
-            -r zap-report.html || true  # <-- evita falha do job por exit 2
+            -v ${{ github.workspace }}/zap-results:/zap/output \
+            ghcr.io/zaproxy/zaproxy:stable /bin/bash -c "\
+              zap-baseline.py \
+                -t http://ecoimpact-api:7020 \
+                -r /zap/output/zap-report.html \
+                -J /zap/output/zap-report.json \
+                -w /zap/output/zap-report.md \
+                -a"
 
+
+      ###################################################################################
+      # - name: Run ZAP Baseline Scan
+      #   run: |
+      #     docker run --rm \
+      #       --network ecoimpact_default \
+      #       -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
+      #       ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+      #       -t http://ecoimpact-api:7020 \
+      #       -r zap-report.html || true  # <-- evita falha do job por exit 2
+      ###################################################################################
 
 
 
@@ -51,25 +67,22 @@ jobs:
       #       -r zap-report.html \
       #       -J zap-report.json \
       #       -w zap-report.md \
-      #       -a
-
-
-      # - name: Run ZAP Baseline Scan via Docker
-      #   run: |
-      #     docker run --rm \
-      #       -v ${{ github.workspace }}/zap-results:/zap/wrk/:rw \
-      #       ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-      #       -t http://localhost:7020 \
-      #       -J zap-report.json \
-      #       -w zap-report.md \
-      #       -r zap-report.html \
       #       -a
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
-          name: zapscan
+          name: zap-report
           path: zap-results/
+
+
+      ###################################################################################
+      # - name: Upload ZAP Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: zapscan
+      #     path: zap-results/
+      ###################################################################################
 
       - name: Stop containers
         run: docker compose down
