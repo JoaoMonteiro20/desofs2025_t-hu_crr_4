@@ -30,8 +30,8 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
-
+          args: --sarif-file-output=snyk-api.sarif
+          project: EcoImpact.API
 
       - name: Scan DataModel Project
         uses: snyk/actions/dotnet@master
