@@ -57,6 +57,9 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
+      - name: Create coverage folder
+        run: mkdir EcoImpact.Tests/coverage
+
       - name: Run tests with Coverlet (OpenCover output)
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
@@ -66,14 +69,6 @@ jobs:
             /p:CoverletOutput=EcoImpact.Tests/coverage/coverage.opencover.xml `
             /p:CoverletOutputFormat=opencover
 
-      - name: Check if coverage report exists
-        shell: powershell
-        run: |
-          if (!(Test-Path "EcoImpact.Tests/coverage/coverage.opencover.xml")) {
-            Write-Error "coverage.opencover.xml NOT found"
-            exit 1
-          }
-
       - name: List coverage folder (debug)
         run: dir EcoImpact.Tests/coverage
 
@@ -82,5 +77,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          if (!(Test-Path "EcoImpact.Tests/coverage/coverage.opencover.xml")) {
+            Write-Error "coverage.opencover.xml NOT found"
+            exit 1
+          }
           .sonar/scanner/dotnet-sonarscanner end `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
