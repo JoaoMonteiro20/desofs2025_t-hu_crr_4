@@ -57,7 +57,7 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-      - name: Run tests with Coverlet (OpenCover output)
+      - name: Run tests with Coverlet (OpenCover output to root)
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
             --no-build `
@@ -70,7 +70,7 @@ jobs:
         shell: powershell
         run: |
           if (!(Test-Path "coverage.opencover.xml")) {
-            Write-Error "❌ coverage.opencover.xml NOT found"
+            Write-Error "coverage.opencover.xml NOT found"
           }
 
       - name: End SonarCloud analysis
