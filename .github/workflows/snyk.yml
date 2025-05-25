@@ -1,51 +1,37 @@
-name: Snyk SCA - Software Composition Analysis
+name: SCA com Snyk
 
 on:
   workflow_dispatch:
   push:
     branches: [ feature-sca ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  snyk:
-    name: Scan Dependencies with Snyk
+  snyk-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout código
+        uses: actions/checkout@v3
 
-      - name: Setup .NET SDK
+      - name: Instalar .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
+      - name: Restaurar dependências
         run: dotnet restore EcoImpactSimulator.sln
 
-      - name: Scan API Project
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --file=EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=EcoImpact.API/snyk-api.sarif
+      - name: Instalar Snyk CLI
+        run: npm install -g snyk
 
+      - name: Autenticar com Snyk
+        run: snyk auth "${{ secrets.SNYK_TOKEN }}"
 
-      - name: Scan DataModel Project
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: EcoImpact.DataModel/EcoImpact.DataModel.csproj --sarif-file-output=snyk-datamodel.sarif
+      - name: Scan EcoImpact.API
+        run: snyk test --file=EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
 
-      - name: Upload Snyk SARIF Results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Fazer upload do relatório
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: snyk-api.sarif
-
-      - name: Upload Snyk SARIF Results (DataModel)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk-datamodel.sarif
+          name: snyk-api-report
+          path: snyk-api.sarif
