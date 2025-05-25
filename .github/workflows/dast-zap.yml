@@ -36,13 +36,13 @@ jobs:
           docker run --rm \
             --network ecoimpact_default \
             -v ${{ github.workspace }}/zap-results:/zap/output \
-            ghcr.io/zaproxy/zaproxy:stable /bin/bash -c "\
-              zap-baseline.py \
-                -t http://ecoimpact-api:7020 \
-                -r /zap/output/zap-report.html \
-                -J /zap/output/zap-report.json \
-                -w /zap/output/zap-report.md \
-                -a"
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+              -t http://ecoimpact-api:7020 \
+              -r /zap/output/zap-report.html \
+              -w /zap/output/zap-report.md \
+              -J /zap/output/zap-report.json \
+              -a
+
 
 
       ###################################################################################
