@@ -63,8 +63,18 @@ jobs:
             --no-build `
             --configuration Release `
             /p:CollectCoverage=true `
-            /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage.opencover.xml `
-            /p:CoverletOutputFormat=opencover
+            /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage `
+            /p:CoverletOutputFormat=opencover `
+            /p:MergeWith=""
+
+      - name: Confirm coverage file exists
+        shell: pwsh
+        run: |
+          if (Test-Path "EcoImpact.Tests/TestResults/coverage.opencover.xml") {
+            Write-Host "✅ Coverage file exists"
+          } else {
+            Write-Error "❌ coverage.opencover.xml NOT found"
+          }
 
       - name: List TestResults folder (debug)
         run: dir EcoImpact.Tests/TestResults
