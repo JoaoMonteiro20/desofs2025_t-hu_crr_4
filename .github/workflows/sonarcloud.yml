@@ -57,9 +57,6 @@ jobs:
       - name: Build
         run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-      - name: Ensure TestResults folder exists
-        run: mkdir EcoImpact.Tests/TestResults
-
       - name: Run tests with Coverlet (OpenCover output)
         run: |
           dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj `
@@ -69,11 +66,14 @@ jobs:
             /p:CoverletOutput=EcoImpact.Tests/TestResults/coverage `
             /p:CoverletOutputFormat=opencover
 
-      - name: Confirm coverage file exists
-        shell: pwsh
+      - name: List TestResults folder (debug)
+        run: dir EcoImpact.Tests\TestResults
+
+      - name: Check coverage file exists
+        shell: powershell
         run: |
           if (Test-Path "EcoImpact.Tests/TestResults/coverage.opencover.xml") {
-            Write-Host "Coverage file exists"
+            Write-Host "coverage.opencover.xml found"
           } else {
             Write-Error "coverage.opencover.xml NOT found"
             exit 1
