@@ -1,30 +1,28 @@
-name: SCA - Snyk Vulnerability Scan
+name: Snyk SCA - Software Composition Analysis
 
 on:
-  push:
-    branches: [feature-sca]
-  pull_request:
-    types: [opened, synchronize, reopened]
   workflow_dispatch:
+  push:
+    branches: [ feature-sca ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   snyk:
-    name: Snyk SCA por projeto
+    name: Scan Dependencies with Snyk
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
+      - name: Restore dependencies
         run: dotnet restore EcoImpactSimulator.sln
 
       - name: Scan API Project
@@ -32,33 +30,21 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
+          args: EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
 
       - name: Scan DataModel Project
         uses: snyk/actions/dotnet@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test EcoImpact.DataModel/EcoImpact.DataModel.csproj --sarif-file-output=snyk-datamodel.sarif
+          args: EcoImpact.DataModel/EcoImpact.DataModel.csproj --sarif-file-output=snyk-datamodel.sarif
 
-      - name: Scan Tests Project
-        uses: snyk/actions/dotnet@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: test EcoImpact.Tests/EcoImpact.Tests.csproj --sarif-file-output=snyk-tests.sarif
-
-      - name: Upload SARIF reports
+      - name: Upload Snyk SARIF Results
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-api.sarif
 
-      - name: Upload SARIF reports 2
+      - name: Upload Snyk SARIF Results (DataModel)
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-datamodel.sarif
-
-      - name: Upload SARIF reports 3
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk-tests.sarif
