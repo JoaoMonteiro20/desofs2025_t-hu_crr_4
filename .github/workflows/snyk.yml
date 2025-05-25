@@ -13,13 +13,13 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v3
 
-      - name: Instalar .NET
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restaurar dependências
-        run: dotnet restore EcoImpactSimulator.sln
+      - name: Restaurar dependências da API
+        run: dotnet restore EcoImpact.API/EcoImpact.API.csproj
 
       - name: Instalar Snyk CLI
         run: npm install -g snyk
@@ -27,10 +27,10 @@ jobs:
       - name: Autenticar com Snyk
         run: snyk auth "${{ secrets.SNYK_TOKEN }}"
 
-      - name: Scan EcoImpact.API
-        run: snyk test --file=EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
+      - name: Scan EcoImpact.API com Snyk
+        run: snyk test --file=EcoImpact.API/EcoImpact.API.csproj --project-name=ecoimpact-api --sarif-file-output=snyk-api.sarif
 
-      - name: Fazer upload do relatório
+      - name: Upload do relatório SARIF
         uses: actions/upload-artifact@v4
         with:
           name: snyk-api-report
