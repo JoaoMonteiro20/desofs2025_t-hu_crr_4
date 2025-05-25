@@ -1,19 +1,22 @@
-name: SCA - Snyk Scan
+name: SCA - Snyk Vulnerability Scan
 
 on:
   push:
-    branches: [ feature-sca ]
+    branches: [feature-sca]
   pull_request:
-    branches: [ main ]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 jobs:
   snyk:
-    name: Snyk .NET Scan
+    name: SCA with Snyk
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup .NET
@@ -29,4 +32,9 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test
+          args: test EcoImpactSimulator.sln --sarif-file-output=snyk-results.sarif
+
+      - name: Upload Snyk SARIF report
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-results.sarif
