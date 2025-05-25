@@ -62,6 +62,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
 builder.Services.AddScoped<IUserChoiceService, UserChoiceService>();
 builder.Services.AddScoped<IHabitTypeMapper, HabitTypeMapper>();
+builder.Services.AddSingleton(new JsonSerializerOptions
+{
+    PropertyNameCaseInsensitive = true
+});
 
 
 // Database

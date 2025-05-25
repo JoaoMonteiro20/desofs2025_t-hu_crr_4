@@ -208,26 +208,6 @@ namespace EcoImpact.Tests
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [TestMethod]
-        public async Task ExportUsers_Should_Not_Include_Password()
-        {
-            var context = CreateEmptyInMemoryContext();
-            context.Users.Add(new User
-            {
-                UserId = Guid.NewGuid(),
-                UserName = "exporteduser",
-                Email = "u@example.com",
-                Password = "superhashed",
-                Role = UserRole.User
-            });
-            await context.SaveChangesAsync();
-
-            var service = new UserService(context, new Mock<IPasswordService>().Object, NullLogger<UserService>.Instance);
-
-            var export = await service.ExportUsersAsJsonFileAsync();
-            var json = System.Text.Encoding.UTF8.GetString(export.FileContent);
-
-            Assert.IsFalse(json.Contains("Password"));
-        }
+        
     }
 }

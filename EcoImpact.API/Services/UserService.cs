@@ -13,19 +13,19 @@ public class UserService : IUserService
     private readonly EcoDbContext _context;
     private readonly IPasswordService _passwordService;
     private readonly ILogger<UserService> _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
 
-    public UserService(EcoDbContext context, IPasswordService passwordService, ILogger<UserService> logger)
+    public UserService(
+        EcoDbContext context,
+        IPasswordService passwordService,
+        ILogger<UserService> logger,
+        JsonSerializerOptions jsonOptions)
     {
         _context = context;
         _passwordService = passwordService;
         _logger = logger;
+        _jsonOptions = jsonOptions;
     }
-
-    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 
     public async Task<User> CreateAsync(User user)
     {
@@ -102,6 +102,7 @@ public class UserService : IUserService
                 Role = (int)u.Role
             })
             .ToListAsync();
+
         if (users.Count == 0)
             throw new InvalidOperationException("Não existem utilizadores para exportar.");
 
