@@ -9,7 +9,7 @@ on:
 
 jobs:
   snyk:
-    name: SCA with Snyk
+    name: Snyk SCA por projeto
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,17 +24,41 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore dependencies
+      - name: Restore
         run: dotnet restore EcoImpactSimulator.sln
 
-      - name: Run Snyk to check for vulnerabilities
+      - name: Scan API Project
         uses: snyk/actions/dotnet@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: test EcoImpactSimulator.sln --sarif-file-output=snyk-results.sarif
+          args: test EcoImpact.API/EcoImpact.API.csproj --sarif-file-output=snyk-api.sarif
 
-      - name: Upload Snyk SARIF report
+      - name: Scan DataModel Project
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: test EcoImpact.DataModel/EcoImpact.DataModel.csproj --sarif-file-output=snyk-datamodel.sarif
+
+      - name: Scan Tests Project
+        uses: snyk/actions/dotnet@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: test EcoImpact.Tests/EcoImpact.Tests.csproj --sarif-file-output=snyk-tests.sarif
+
+      - name: Upload SARIF reports
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: snyk-results.sarif
+          sarif_file: snyk-api.sarif
+
+      - name: Upload SARIF reports 2
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-datamodel.sarif
+
+      - name: Upload SARIF reports 3
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-tests.sarif
