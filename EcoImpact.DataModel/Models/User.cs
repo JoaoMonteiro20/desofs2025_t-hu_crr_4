@@ -25,5 +25,8 @@ namespace EcoImpact.DataModel.Models
         public ICollection<UserChoice> UserChoices { get; set; } = new List<UserChoice>();
         public ICollection<FootprintSummary> Summaries { get; set; } = new List<FootprintSummary>();
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+
+        public int FailedLoginAttempts { get; set; } = 0;
+        public DateTime? LockoutEnd { get; set; } = null;
     }
 }

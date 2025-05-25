@@ -1,5 +1,6 @@
 ﻿using EcoImpact.API.Services;
 using EcoImpact.DataModel;
+using EcoImpact.DataModel.Dtos;
 using EcoImpact.DataModel.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -8,10 +9,12 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EcoImpact.Tests.Services
+namespace EcoImpact.Tests
 {
     [TestClass]
     public class UserServiceTests
@@ -20,6 +23,13 @@ namespace EcoImpact.Tests.Services
         private Mock<EcoDbContext> _mockContext = null!;
         private Mock<IPasswordService> _passwordServiceMock = null!;
         private UserService _userService = null!;
+
+        private readonly JsonSerializerOptions _defaultJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         private static Mock<DbSet<T>> CreateMockDbSet<T>(IEnumerable<T> data) where T : class
         {
@@ -47,7 +57,11 @@ namespace EcoImpact.Tests.Services
 
             _passwordServiceMock = new Mock<IPasswordService>();
 
-            _userService = new UserService(_mockContext.Object, _passwordServiceMock.Object, NullLogger<UserService>.Instance);
+            _userService = new UserService(
+                _mockContext.Object,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions);
         }
 
         [TestMethod]
@@ -95,7 +109,12 @@ namespace EcoImpact.Tests.Services
                     });
 
             _mockContext.Setup(c => c.Users).Returns(_mockSet.Object);
-            _userService = new UserService(_mockContext.Object, _passwordServiceMock.Object, NullLogger<UserService>.Instance);
+
+            _userService = new UserService(
+                _mockContext.Object,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions);
 
             var result = await _userService.GetByIdAsync(user.UserId);
 
@@ -110,7 +129,11 @@ namespace EcoImpact.Tests.Services
             _mockSet = CreateMockDbSet(users);
             _mockContext.Setup(c => c.Users).Returns(_mockSet.Object);
 
-            _userService = new UserService(_mockContext.Object, _passwordServiceMock.Object, NullLogger<UserService>.Instance);
+            _userService = new UserService(
+                _mockContext.Object,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions);
 
             var result = await _userService.GetByIdAsync(Guid.NewGuid());
 
@@ -139,9 +162,45 @@ namespace EcoImpact.Tests.Services
 
             Assert.IsFalse(result);
         }
+
+        [TestMethod]
+        public async Task ExportUsersAsJsonFileAsync_ShouldReturnValidJsonFile()
+        {
+            var options = new DbContextOptionsBuilder<EcoDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            var context = new EcoDbContext(options);
+
+            context.Users.AddRange(new List<User>
+            {
+                new User { UserId = Guid.NewGuid(), UserName = "admin", Email = "admin@example.com", Role = UserRole.Admin, Password = "xxx" },
+                new User { UserId = Guid.NewGuid(), UserName = "user1", Email = "user1@example.com", Role = UserRole.User, Password = "yyy" }
+            });
+
+            await context.SaveChangesAsync();
+
+            var service = new UserService(
+                context,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions);
+
+            var result = await service.ExportUsersAsJsonFileAsync();
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("application/json", result.ContentType);
+            Assert.AreEqual("users_export.json", result.FileName);
+            Assert.IsTrue(result.FileContent.Length > 0);
+
+            var json = JsonSerializer.Deserialize<List<UserExportDto>>(result.FileContent, _defaultJsonOptions);
+            Assert.IsNotNull(json);
+            Assert.AreEqual(2, json!.Count);
+            Assert.IsTrue(json.Any(u => u.UserName == "admin"));
+            Assert.IsTrue(json.Any(u => u.UserName == "user1"));
+        }
     }
 
-    // Simulador de IAsyncEnumerator<T> para ToListAsync() funcionar nos mocks
     public class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         private readonly IEnumerator<T> _inner;
