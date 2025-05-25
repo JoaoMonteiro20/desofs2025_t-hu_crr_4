@@ -76,12 +76,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-//////////
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    options.ListenAnyIP(7020); // Porta que definiste no Docker
-//});
-/////////////
 
 var app = builder.Build();
 
