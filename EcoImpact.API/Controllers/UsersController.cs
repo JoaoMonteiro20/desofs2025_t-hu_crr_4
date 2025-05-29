@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
+using EcoImpact.DataModel.Dtos;
+using EcoImpact.API.Services;
 
 namespace EcoImpact.API.Controllers;
 
@@ -16,6 +18,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Moderator")]
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
         var users = await _userService.GetAllAsync();
@@ -32,8 +35,8 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    [AllowAnonymous]
-    public async Task<ActionResult<User>> CreateUser(User user)
+    [AllowAnonymous] // Remova se não quiser permitir criação sem login
+    public async Task<ActionResult<User>> CreateUser(CreateUserDto user)
     {
         var created = await _userService.CreateAsync(user);
         return CreatedAtAction(nameof(GetUser), new { id = created.UserId }, created);
@@ -41,10 +44,11 @@ public class UsersController : ControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> UpdateUser(Guid id, User updatedUser)
+    public async Task<IActionResult> UpdateUser(Guid id, UserUpdateDto updatedUser)
     {
-        var success = await _userService.UpdateAsync(id, updatedUser);
-        return success ? NoContent() : BadRequest();
+        var updated = await _userService.UpdateAsync(id, updatedUser);
+        if (updated == null) return NotFound();
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,8 +59,8 @@ public class UsersController : ControllerBase
         return success ? NoContent() : NotFound();
     }
 
-    [Authorize(Roles = "Admin,Moderator")]
     [HttpGet("export-json")]
+    [Authorize(Roles = "Admin,Moderator")]
     public async Task<IActionResult> ExportUsersJson()
     {
         var result = await _userService.ExportUsersAsJsonFileAsync();

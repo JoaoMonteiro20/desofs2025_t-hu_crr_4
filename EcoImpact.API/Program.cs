@@ -62,6 +62,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
 builder.Services.AddScoped<IUserChoiceService, UserChoiceService>();
 builder.Services.AddScoped<IHabitTypeMapper, HabitTypeMapper>();
+builder.Services.AddScoped<IUserValidator, UserValidator>();
+builder.Services.AddScoped<IUserMapper,UserMapper>();
 builder.Services.AddSingleton(new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true
