@@ -35,7 +35,6 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    [AllowAnonymous] // Remova se não quiser permitir criação sem login
     public async Task<ActionResult<User>> CreateUser(CreateUserDto user)
     {
         var created = await _userService.CreateAsync(user);
