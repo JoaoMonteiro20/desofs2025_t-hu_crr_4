@@ -69,7 +69,15 @@ builder.Services.AddSingleton(new JsonSerializerOptions
     PropertyNameCaseInsensitive = true
 });
 
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7001")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 // Database
 builder.Services.AddDbContext<EcoDbContext>(options =>
     options.UseSqlServer(
@@ -123,7 +131,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
-
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 

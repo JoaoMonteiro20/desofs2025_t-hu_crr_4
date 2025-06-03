@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcoImpact.DataModel", "EcoI
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcoImpact.Tests", "EcoImpact.Tests\EcoImpact.Tests.csproj", "{66344FBA-48EB-4A48-804A-2FD7CA93F214}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcoImpact.Frontend", "EcoImpact.Frontend\EcoImpact.Frontend.csproj", "{9459326D-3596-4BDE-BD80-ADB74BF0CA1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66344FBA-48EB-4A48-804A-2FD7CA93F214}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9459326D-3596-4BDE-BD80-ADB74BF0CA1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9459326D-3596-4BDE-BD80-ADB74BF0CA1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9459326D-3596-4BDE-BD80-ADB74BF0CA1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9459326D-3596-4BDE-BD80-ADB74BF0CA1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

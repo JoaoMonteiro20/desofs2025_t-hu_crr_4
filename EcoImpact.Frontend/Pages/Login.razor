@@ -1,0 +1,37 @@
+﻿@page "/"
+@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p style="color: red">@ErrorMessage</p>
+}
+
+<EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+    <InputText @bind-Value="loginModel.UserName" placeholder="Username" />
+    <br />
+    <InputText @bind-Value="loginModel.Password" type="password" placeholder="Password" />
+    <br />
+    <button type="submit">Login</button>
+</EditForm>
+
+@code {
+    private LoginRequest loginModel = new();
+    private string? ErrorMessage;
+
+    private async Task HandleLogin()
+    {
+        var success = await AuthService.LoginAsync(loginModel);
+        if (success)
+        {
+            NavigationManager.NavigateTo("/home");
+        }
+        else
+        {
+            ErrorMessage = "Credenciais inválidas";
+        }
+    }
+}

@@ -45,7 +45,7 @@ public class UserService : IUserService
         {
             UserName = dto.UserName,
             Email = dto.Email,
-            Role = dto.Role,
+            Role = UserRole.User,
             Password = _passwordService.HashPassword(null!, dto.Password)
         };
 

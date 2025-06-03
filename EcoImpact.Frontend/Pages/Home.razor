@@ -1,0 +1,63 @@
+﻿@page "/home"
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager Navigation
+
+<h3>Bem-vindo, @username!</h3>
+
+<button @onclick="CalcularPegada">Calcular Pegada</button>
+
+@code {
+    private string? username;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await localStorage.GetItemAsStringAsync("authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        // Extrair o nome do utilizador do token
+        username = ObterClaimDoToken(token, "unique_name") ?? ObterClaimDoToken(token, "name");
+
+        if (string.IsNullOrWhiteSpace(username))
+            username = "Utilizador";
+    }
+
+    private string? ObterClaimDoToken(string token, string claimType)
+    {
+        try
+        {
+            var payload = token.Split('.')[1]; // Pega só o payload
+            var jsonBytes = Convert.FromBase64String(PadBase64(payload));
+            var payloadJson = System.Text.Json.JsonDocument.Parse(jsonBytes);
+
+            if (payloadJson.RootElement.TryGetProperty(claimType, out var claim))
+                return claim.GetString();
+        }
+        catch
+        {
+            // Ignorar erros de parsing
+        }
+
+        return null;
+    }
+
+    private string PadBase64(string base64)
+    {
+        // Corrige padding do base64 se necessário
+        switch (base64.Length % 4)
+        {
+            case 2: return base64 + "==";
+            case 3: return base64 + "=";
+            default: return base64;
+        }
+    }
+
+    private void CalcularPegada()
+    {
+        Navigation.NavigateTo("/pegada");
+    }
+}
