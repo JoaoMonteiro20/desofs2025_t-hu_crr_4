@@ -7,6 +7,7 @@ using EcoImpact.DataModel.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text;
+using EcoImpact.API.Mapper;
 
 public class UserService : IUserService
 {
@@ -14,46 +15,67 @@ public class UserService : IUserService
     private readonly IPasswordService _passwordService;
     private readonly ILogger<UserService> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly IUserValidator _validator;
+    private readonly IUserMapper _mapper;
 
     public UserService(
         EcoDbContext context,
         IPasswordService passwordService,
         ILogger<UserService> logger,
-        JsonSerializerOptions jsonOptions)
+        JsonSerializerOptions jsonOptions,
+        IUserValidator validator,
+        IUserMapper mapper
+        )
     {
         _context = context;
         _passwordService = passwordService;
         _logger = logger;
         _jsonOptions = jsonOptions;
+        _validator = validator;
+        _mapper = mapper;
     }
 
-    public async Task<User> CreateAsync(User user)
+    public async Task<User> CreateAsync(CreateUserDto dto)
     {
-        _logger.LogInformation("Criando utilizador com username: {UserName}", user.UserName);
+        _logger.LogInformation("Creating user with username: {UserName}", dto.UserName);
 
-        user.Password = _passwordService.HashPassword(user, user.Password);
+        _validator.Validate(dto);
+
+        var user = new User
+        {
+            UserName = dto.UserName,
+            Email = dto.Email,
+            Role = dto.Role,
+            Password = _passwordService.HashPassword(null!, dto.Password)
+        };
+
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Utilizador criado com sucesso: {UserId}", user.UserId);
+        _logger.LogInformation("User created with ID: {UserId}", user.UserId);
         return user;
     }
 
-    public async Task<bool> UpdateAsync(Guid id, User updatedUser)
+    public async Task<User?> UpdateAsync(Guid userId, UserUpdateDto dto)
     {
-        if (id != updatedUser.UserId)
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
         {
-            _logger.LogWarning("Tentativa de atualizar utilizador com ID divergente: {PathId} != {BodyId}", id, updatedUser.UserId);
-            return false;
+            _logger.LogWarning("User with ID {UserId} not found for update.", userId);
+            return null;
         }
 
-        _logger.LogInformation("Atualizando utilizador com ID: {UserId}", id);
+        _validator.Validate(dto);
+        _mapper.UpdateUserFromDto(user, dto);
 
-        _context.Entry(updatedUser).State = EntityState.Modified;
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+            user.Password = _passwordService.HashPassword(user, dto.Password);
+
+        _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Utilizador com ID {UserId} atualizado com sucesso", id);
-        return true;
+        _logger.LogInformation("User with ID {UserId} updated successfully.", userId);
+        return user;
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()

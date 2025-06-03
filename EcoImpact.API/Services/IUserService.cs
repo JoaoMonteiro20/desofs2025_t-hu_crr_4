@@ -1,12 +1,13 @@
-﻿using EcoImpact.DataModel.Models;
+﻿using EcoImpact.DataModel.Dtos;
+using EcoImpact.DataModel.Models;
 
 public interface IUserService
 {
     Task<User?> GetByIdAsync(Guid id);
     Task<IEnumerable<User>> GetAllAsync();
-    Task<User> CreateAsync(User user);
+    Task<User> CreateAsync(CreateUserDto user);
     Task<bool> DeleteAsync(Guid id);
 
-    Task<bool> UpdateAsync(Guid id, User updatedUser);
+    Task<User?> UpdateAsync(Guid id, UserUpdateDto dto);
     Task<UserFileExportResult> ExportUsersAsJsonFileAsync();
 }

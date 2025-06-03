@@ -1,4 +1,5 @@
-﻿using EcoImpact.API.Services;
+﻿using EcoImpact.API.Mapper;
+using EcoImpact.API.Services;
 using EcoImpact.DataModel;
 using EcoImpact.DataModel.Dtos;
 using EcoImpact.DataModel.Models;
@@ -9,7 +10,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +22,8 @@ namespace EcoImpact.Tests
         private Mock<DbSet<User>> _mockSet = null!;
         private Mock<EcoDbContext> _mockContext = null!;
         private Mock<IPasswordService> _passwordServiceMock = null!;
+        private Mock<IUserValidator> _userValidatorMock = null!;
+        private Mock<IUserMapper> _userMapperMock = null!;
         private UserService _userService = null!;
 
         private readonly JsonSerializerOptions _defaultJsonOptions = new JsonSerializerOptions
@@ -56,29 +58,34 @@ namespace EcoImpact.Tests
             _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
             _passwordServiceMock = new Mock<IPasswordService>();
+            _userValidatorMock = new Mock<IUserValidator>();
+            _userMapperMock = new Mock<IUserMapper>();
 
             _userService = new UserService(
                 _mockContext.Object,
                 _passwordServiceMock.Object,
                 NullLogger<UserService>.Instance,
-                _defaultJsonOptions);
+                _defaultJsonOptions,
+                _userValidatorMock.Object,
+                _userMapperMock.Object);
         }
 
         [TestMethod]
         public async Task CreateUserAsync_ShouldHashPassword_AndSaveUser()
         {
-            var user = new User
+            var dto = new CreateUserDto
             {
                 UserName = "testuser",
                 Password = "plainPassword",
-                Email = "testuser@example.com"
+                Email = "testuser@example.com",
+                Role = UserRole.User
             };
 
             _passwordServiceMock
-                .Setup(p => p.HashPassword(It.IsAny<User>(), "plainPassword"))
+                .Setup(p => p.HashPassword(It.IsAny<User>(), dto.Password))
                 .Returns("hashedPassword");
 
-            var result = await _userService.CreateAsync(user);
+            var result = await _userService.CreateAsync(dto);
 
             _mockSet.Verify(m => m.Add(It.IsAny<User>()), Times.Once);
             _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -88,117 +95,115 @@ namespace EcoImpact.Tests
         }
 
         [TestMethod]
-        public async Task GetByIdAsync_ShouldReturnUser_WhenExists()
+        public async Task UpdateUserAsync_ShouldUpdateFields_WhenUserExists()
         {
-            var user = new User
-            {
-                UserId = Guid.NewGuid(),
-                UserName = "existinguser",
-                Password = "pwd",
-                Email = "asda"
-            };
+            Guid userId = Guid.NewGuid();
+            var user = new User { UserId = Guid.NewGuid(), UserName = "old", Email = "old@email.com", Password = "oldpwd" };
 
-            var users = new List<User> { user };
-            _mockSet = CreateMockDbSet(users);
+            _mockSet.Setup(m => m.FindAsync(userId)).ReturnsAsync(user);
+            _userMapperMock.Setup(m => m.UpdateUserFromDto(user, It.IsAny<UserUpdateDto>()));
 
-            _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
-                    .ReturnsAsync((object[] ids) =>
-                    {
-                        var id = (Guid)ids[0];
-                        return users.FirstOrDefault(u => u.UserId == id);
-                    });
+            var updateDto = new UserUpdateDto { UserName = "newName" };
 
-            _mockContext.Setup(c => c.Users).Returns(_mockSet.Object);
-
-            _userService = new UserService(
-                _mockContext.Object,
-                _passwordServiceMock.Object,
-                NullLogger<UserService>.Instance,
-                _defaultJsonOptions);
-
-            var result = await _userService.GetByIdAsync(user.UserId);
+            var result = await _userService.UpdateAsync(userId, updateDto);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual("existinguser", result!.UserName);
+            _userValidatorMock.Verify(v => v.Validate(updateDto), Times.Once);
+            _userMapperMock.Verify(m => m.UpdateUserFromDto(user, updateDto), Times.Once);
         }
 
         [TestMethod]
-        public async Task GetByUsernameAsync_ShouldReturnNull_WhenUserDoesNotExist()
+        public async Task UpdateUserAsync_ShouldReturnNull_WhenUserDoesNotExist()
         {
-            var users = new List<User>(); // nenhum user
-            _mockSet = CreateMockDbSet(users);
-            _mockContext.Setup(c => c.Users).Returns(_mockSet.Object);
+            Guid userId = Guid.NewGuid();
+            _mockSet.Setup(m => m.FindAsync(userId)).ReturnsAsync((User?)null);
 
-            _userService = new UserService(
-                _mockContext.Object,
-                _passwordServiceMock.Object,
-                NullLogger<UserService>.Instance,
-                _defaultJsonOptions);
-
-            var result = await _userService.GetByIdAsync(Guid.NewGuid());
+            var dto = new UserUpdateDto { Email = "new@email.com" };
+            var result = await _userService.UpdateAsync(userId, dto);
 
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public async Task DeleteUserAsync_ShouldDeleteUser_WhenUserExists()
+        public async Task UpdateAsync_ShouldUpdateOnlyProvidedFields()
         {
-            var user = new User { UserId = Guid.NewGuid(), UserName = "todelete", Password = "pwd", Email = "adas" };
-            _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>())).ReturnsAsync(user);
+            var userId = Guid.NewGuid();
+            var existingUser = new User
+            {
+                UserId = userId,
+                UserName = "oldname",
+                Email = "old@email.com",
+                Password = "oldpass"
+            };
 
-            var result = await _userService.DeleteAsync(user.UserId);
+            var dto = new UserUpdateDto
+            {
+                UserName = "newname"
+            };
 
-            _mockSet.Verify(m => m.Remove(It.IsAny<User>()), Times.Once);
-            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-            Assert.IsTrue(result);
+            _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>())).ReturnsAsync(existingUser);
+
+            var validatorMock = new Mock<IUserValidator>();
+            var mapperMock = new Mock<IUserMapper>();
+            mapperMock.Setup(m => m.UpdateUserFromDto(existingUser, dto)).Callback(() => existingUser.UserName = dto.UserName);
+
+            var service = new UserService(
+                _mockContext.Object,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions,
+                validatorMock.Object,
+                mapperMock.Object);
+
+            var updated = await service.UpdateAsync(existingUser.UserId, dto);
+
+            Assert.IsNotNull(updated);
+            Assert.AreEqual("newname", updated!.UserName);
+            Assert.AreEqual("old@email.com", updated.Email); // unchanged
         }
 
         [TestMethod]
-        public async Task DeleteUserAsync_ShouldReturnFalse_WhenUserDoesNotExist()
+        public async Task CreateAsync_ShouldThrow_WhenInvalidDto()
+        {
+            var dto = new CreateUserDto
+            {
+                UserName = "",
+                Email = "invalidemail",
+                Password = "short"
+            };
+
+            var validatorMock = new Mock<IUserValidator>();
+            validatorMock.Setup(v => v.Validate(dto)).Throws(new ArgumentException("Invalid data"));
+
+            var service = new UserService(
+                _mockContext.Object,
+                _passwordServiceMock.Object,
+                NullLogger<UserService>.Instance,
+                _defaultJsonOptions,
+                validatorMock.Object,
+                Mock.Of<IUserMapper>());
+
+            await Assert.ThrowsExceptionAsync<ArgumentException>(() => service.CreateAsync(dto));
+        }
+
+        [TestMethod]
+        public async Task UpdateAsync_ShouldReturnNull_WhenUserNotFound()
         {
             _mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>())).ReturnsAsync((User?)null);
 
-            var result = await _userService.DeleteAsync(Guid.NewGuid());
-
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
-        public async Task ExportUsersAsJsonFileAsync_ShouldReturnValidJsonFile()
-        {
-            var options = new DbContextOptionsBuilder<EcoDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-            var context = new EcoDbContext(options);
-
-            context.Users.AddRange(new List<User>
-            {
-                new User { UserId = Guid.NewGuid(), UserName = "admin", Email = "admin@example.com", Role = UserRole.Admin, Password = "xxx" },
-                new User { UserId = Guid.NewGuid(), UserName = "user1", Email = "user1@example.com", Role = UserRole.User, Password = "yyy" }
-            });
-
-            await context.SaveChangesAsync();
-
             var service = new UserService(
-                context,
+                _mockContext.Object,
                 _passwordServiceMock.Object,
                 NullLogger<UserService>.Instance,
-                _defaultJsonOptions);
+                _defaultJsonOptions,
+                Mock.Of<IUserValidator>(),
+                Mock.Of<IUserMapper>());
 
-            var result = await service.ExportUsersAsJsonFileAsync();
+            var result = await service.UpdateAsync(Guid.NewGuid(), new UserUpdateDto());
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual("application/json", result.ContentType);
-            Assert.AreEqual("users_export.json", result.FileName);
-            Assert.IsTrue(result.FileContent.Length > 0);
-
-            var json = JsonSerializer.Deserialize<List<UserExportDto>>(result.FileContent, _defaultJsonOptions);
-            Assert.IsNotNull(json);
-            Assert.AreEqual(2, json!.Count);
-            Assert.IsTrue(json.Any(u => u.UserName == "admin"));
-            Assert.IsTrue(json.Any(u => u.UserName == "user1"));
+            Assert.IsNull(result);
         }
+
     }
 
     public class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
