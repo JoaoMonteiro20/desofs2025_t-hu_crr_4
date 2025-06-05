@@ -1,6 +1,7 @@
 ﻿using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 [ApiController]
@@ -84,5 +85,13 @@ public class HabitTypesController : ControllerBase
     {
         var result = await _habitService.ImportFromFileAsync(file);
         return Ok(result);
+    }
+
+    [HttpGet("quiz")]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<HabitTypeDto>>> GetQuizHabitTypes()
+    {
+        var habits = await _habitService.GetRandomQuizHabitTypesAsync();
+        return Ok(habits);
     }
 }

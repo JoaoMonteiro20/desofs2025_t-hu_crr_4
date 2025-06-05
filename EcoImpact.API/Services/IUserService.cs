@@ -10,4 +10,5 @@ public interface IUserService
 
     Task<User?> UpdateAsync(Guid id, UserUpdateDto dto);
     Task<UserFileExportResult> ExportUsersAsJsonFileAsync();
+    Task<bool> UpdateEcoScoreAsync(string username, decimal score);
 }

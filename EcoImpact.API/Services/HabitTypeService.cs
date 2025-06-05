@@ -113,4 +113,19 @@ public class HabitTypeService : IHabitTypeService
 
         return $"{habitEntities.Count} habit types imported successfully.";
     }
+
+    public async Task<List<HabitTypeDto>> GetRandomQuizHabitTypesAsync(int count = 3)
+    {
+        return await _context.HabitTypes
+            .OrderBy(h => Guid.NewGuid())
+            .Take(count)
+            .Select(h => new HabitTypeDto
+            {
+                Id = h.HabitTypeId,
+                Name = h.Name,
+                Factor = h.Factor,
+                Unit = h.Unit
+            })
+            .ToListAsync();
+    }
 }

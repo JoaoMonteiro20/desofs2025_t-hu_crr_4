@@ -12,6 +12,10 @@
 {
     <button @onclick="VerUtilizadores">Ver Utilizadores</button>
 }
+@if (userRole == "User")
+{
+    <button class="btn btn-success" @onclick="IrParaQuiz">Fazer Quiz</button>
+}
 
 <button class="btn btn-danger" @onclick="Logout">Logout</button>
 
@@ -83,5 +87,10 @@
     {
         await AuthService.LogoutAsync();
         Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void IrParaQuiz()
+    {
+        Navigation.NavigateTo("/quiz");
     }
 }

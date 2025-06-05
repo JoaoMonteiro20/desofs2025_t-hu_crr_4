@@ -1,0 +1,94 @@
+﻿@page "/quiz"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService localStorage
+@inject IJSRuntime JS
+@using Blazored.LocalStorage
+
+<h3>Quiz de Hábitos Sustentáveis</h3>
+
+@if (habitTypes == null)
+{
+    <p>A carregar perguntas...</p>
+}
+else if (habitTypes.Count == 0)
+{
+    <p>Nenhum hábito disponível.</p>
+}
+else
+{
+    <EditForm Model="@answers" OnValidSubmit="SubmitQuiz">
+        <DataAnnotationsValidator />
+        @for (int i = 0; i < habitTypes.Count; i++)
+        {
+            <div class="mb-3">
+                <label>@habitTypes[i].Name (@habitTypes[i].Unit):</label>
+                <InputNumber @bind-Value="answers[i]" class="form-control" />
+            </div>
+        }
+        <button type="submit" class="btn btn-success">Submeter</button>
+    </EditForm>
+}
+
+@if (showCongrats)
+{
+    <div class="alert alert-success mt-4">
+        🎉 Parabéns! Obtiveste um EcoScore excelente!
+    </div>
+}
+
+@code {
+    private List<HabitTypeDto>? habitTypes;
+    private List<decimal> answers = new();
+    private bool showCongrats = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await localStorage.GetItemAsStringAsync("authToken");
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            habitTypes = await Http.GetFromJsonAsync<List<HabitTypeDto>>("api/habittype/quiz");
+
+            if (habitTypes != null)
+            {
+                answers = Enumerable.Repeat(0m, habitTypes.Count).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar quiz: " + ex.Message);
+        }
+    }
+
+    private async Task SubmitQuiz()
+    {
+        decimal totalScore = 0;
+
+        for (int i = 0; i < habitTypes!.Count; i++)
+        {
+            totalScore += answers[i] * habitTypes[i].Factor;
+        }
+
+        var saveDto = new SaveEcoScoreDto { Score = totalScore };
+
+        await Http.PostAsJsonAsync("api/users/quiz/save-score", saveDto);
+
+        showCongrats = totalScore < 50; // quanto menor, melhor no contexto de CO₂
+    }
+
+    public class HabitTypeDto
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Factor { get; set; }
+        public string Unit { get; set; } = string.Empty;
+    }
+
+    public class SaveEcoScoreDto
+    {
+        public decimal Score { get; set; }
+    }
+}

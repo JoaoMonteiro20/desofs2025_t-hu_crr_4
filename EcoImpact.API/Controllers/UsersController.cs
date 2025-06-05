@@ -3,6 +3,7 @@ using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
 using EcoImpact.DataModel.Dtos;
 using EcoImpact.API.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoImpact.API.Controllers;
 
@@ -72,5 +73,17 @@ public class UsersController : ControllerBase
     {
         var result = await _userService.ExportUsersAsJsonFileAsync();
         return File(result.FileContent, result.ContentType, result.FileName);
+    }
+
+    [HttpPost("quiz/save-score")]
+    public async Task<IActionResult> SaveEcoScore([FromBody] SaveEcoScoreDto dto)
+    {
+        var siid = User.Identity?.Name;
+        if (string.IsNullOrEmpty(siid)) return Unauthorized();
+
+        var sucesso = await _userService.UpdateEcoScoreAsync(siid, dto.Score);
+        if (!sucesso) return NotFound();
+
+        return Ok();
     }
 }

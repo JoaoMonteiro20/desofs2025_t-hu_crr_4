@@ -138,4 +138,14 @@ public class UserService : IUserService
             FileName = "users_export.json"
         };
     }
+
+    public async Task<bool> UpdateEcoScoreAsync(string username, decimal score)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        if (user == null) return false;
+
+        user.EcoScore = score;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

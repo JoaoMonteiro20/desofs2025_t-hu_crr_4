@@ -10,4 +10,5 @@ public interface IHabitTypeService
 
     Task<bool> DeleteAsync(Guid id);
     Task<string> ImportFromFileAsync(IFormFile file);
+    Task<List<HabitTypeDto>> GetRandomQuizHabitTypesAsync(int count = 3);
 }
