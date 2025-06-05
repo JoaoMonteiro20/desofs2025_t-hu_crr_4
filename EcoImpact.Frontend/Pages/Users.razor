@@ -1,0 +1,148 @@
+﻿@page "/users"
+@using EcoImpact.Frontend.Models
+@using System.Text.Json
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Lista de Utilizadores</h3>
+
+@if (userRole != "Admin" && userRole != "Moderator")
+{
+    <p>Acesso negado.</p>
+}
+else if (users == null)
+{
+    <p>A carregar utilizadores...</p>
+}
+else if (users.Count == 0)
+{
+    <p>Não existem utilizadores registados.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-secondary mb-3" @onclick="VoltarParaHome">Voltar ao Início</button>
+    <button class="btn btn-primary mb-3 me-2" @onclick="ExportarUtilizadores">
+        Exportar Utilizadores (JSON)
+    </button>
+}
+
+@code {
+    private List<UserDto>? users;
+    private string? userRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        userRole = ObterClaimDoToken(token, "role");
+
+        if (userRole != "Admin" && userRole != "Moderator")
+            return;
+
+        Http.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            Console.WriteLine(token);
+        try
+        {
+            users = await Http.GetFromJsonAsync<List<UserDto>>("api/users");
+        }
+        catch
+        {
+            users = new();
+        }
+    }
+
+    private string? ObterClaimDoToken(string token, string claimKey)
+    {
+        try
+        {
+            var claimMap = new Dictionary<string, string>
+                {
+                    ["name"] = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+                    ["role"] = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                };
+
+            var mappedClaim = claimMap.TryGetValue(claimKey, out var mapped) ? mapped : claimKey;
+
+            var payload = token.Split('.')[1];
+            var jsonBytes = Convert.FromBase64String(PadBase64(payload));
+            var payloadJson = JsonDocument.Parse(jsonBytes);
+
+            if (payloadJson.RootElement.TryGetProperty(mappedClaim, out var claim))
+                return claim.GetString();
+        }
+        catch
+        {
+            // Ignorar erros
+        }
+
+        return null;
+    }
+
+    private string PadBase64(string base64Url)
+    {
+        string padded = base64Url.Replace('-', '+').Replace('_', '/');
+        return padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
+    }
+
+    private void VoltarParaHome()
+    {
+        Navigation.NavigateTo("/home");
+    }
+
+    private async Task ExportarUtilizadores()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/users/export-json");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsByteArrayAsync();
+                var fileName = response.Content.Headers.ContentDisposition?.FileName?.Trim('"') ?? "users.json";
+                var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
+
+                await JS.InvokeVoidAsync(
+                    "downloadFileFromBytes",
+                    fileName,
+                    contentType,
+                    Convert.ToBase64String(content)
+                );
+            }
+            else
+            {
+                Console.WriteLine("Erro ao exportar utilizadores: " + response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exceção ao exportar utilizadores: " + ex.Message);
+        }
+    }
+}

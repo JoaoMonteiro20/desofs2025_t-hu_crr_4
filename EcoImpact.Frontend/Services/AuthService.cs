@@ -4,6 +4,8 @@ using System.Text;
 using System.Net.Http.Headers;
 using Blazored.LocalStorage;
 using EcoImpact.Frontend.Models;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 
 public class AuthService : IAuthService
@@ -25,7 +27,7 @@ public class AuthService : IAuthService
             return false;
 
         var result = await response.Content.ReadFromJsonAsync<AuthResult>();
-        if (result?.Token is null)
+        if (string.IsNullOrWhiteSpace(result?.Token))
             return false;
 
         await _localStorage.SetItemAsync("authToken", result.Token);
@@ -33,12 +35,24 @@ public class AuthService : IAuthService
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", result.Token);
 
+      
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(result.Token);
+
+        var roles = token.Claims
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role") // compatível com vários esquemas
+            .Select(c => c.Value)
+            .ToList();
+
+        await _localStorage.SetItemAsync("userRoles", roles);
+
         return true;
     }
 
     public async Task LogoutAsync()
     {
         await _localStorage.RemoveItemAsync("authToken");
+        await _localStorage.RemoveItemAsync("userRoles"); 
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
@@ -59,5 +73,9 @@ public class AuthService : IAuthService
 
         var error = await response.Content.ReadAsStringAsync();
         return new AuthResult { Success = false, Error = error };
+    }
+    public async Task<List<string>> GetUserRolesAsync()
+    {
+        return await _localStorage.GetItemAsync<List<string>>("userRoles") ?? new();
     }
 }

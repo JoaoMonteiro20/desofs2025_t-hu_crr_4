@@ -1,13 +1,23 @@
 ﻿@page "/home"
+@using System.Text.Json
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager Navigation
+@inject IAuthService AuthService
 
 <h3>Bem-vindo, @username!</h3>
 
 <button @onclick="CalcularPegada">Calcular Pegada</button>
 
+@if (userRole == "Admin" || userRole == "Moderator")
+{
+    <button @onclick="VerUtilizadores">Ver Utilizadores</button>
+}
+
+<button class="btn btn-danger" @onclick="Logout">Logout</button>
+
 @code {
     private string? username;
+    private string? userRole;
 
     protected override async Task OnInitializedAsync()
     {
@@ -19,45 +29,59 @@
             return;
         }
 
-        // Extrair o nome do utilizador do token
-        username = ObterClaimDoToken(token, "unique_name") ?? ObterClaimDoToken(token, "name");
+        username = ObterClaimDoToken(token, "name");
+        userRole = ObterClaimDoToken(token, "role");
 
         if (string.IsNullOrWhiteSpace(username))
             username = "Utilizador";
     }
 
-    private string? ObterClaimDoToken(string token, string claimType)
+    public string? ObterClaimDoToken(string token, string claimKey)
     {
         try
         {
-            var payload = token.Split('.')[1]; // Pega só o payload
-            var jsonBytes = Convert.FromBase64String(PadBase64(payload));
-            var payloadJson = System.Text.Json.JsonDocument.Parse(jsonBytes);
+            var claimMap = new Dictionary<string, string>
+                {
+                    ["name"] = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+                    ["role"] = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                };
 
-            if (payloadJson.RootElement.TryGetProperty(claimType, out var claim))
+            var mappedClaim = claimMap.TryGetValue(claimKey, out var mapped) ? mapped : claimKey;
+
+            var payload = token.Split('.')[1];
+            var jsonBytes = Convert.FromBase64String(PadBase64(payload));
+            var payloadJson = JsonDocument.Parse(jsonBytes);
+
+            if (payloadJson.RootElement.TryGetProperty(mappedClaim, out var claim))
                 return claim.GetString();
         }
         catch
         {
-            // Ignorar erros de parsing
+            // Ignorar erros
         }
 
         return null;
     }
 
-    private string PadBase64(string base64)
+    private string PadBase64(string base64Url)
     {
-        // Corrige padding do base64 se necessário
-        switch (base64.Length % 4)
-        {
-            case 2: return base64 + "==";
-            case 3: return base64 + "=";
-            default: return base64;
-        }
+        string padded = base64Url.Replace('-', '+').Replace('_', '/');
+        return padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
     }
 
     private void CalcularPegada()
     {
         Navigation.NavigateTo("/pegada");
+    }
+
+    private void VerUtilizadores()
+    {
+        Navigation.NavigateTo("/users");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 }

@@ -19,10 +19,18 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin,Moderator")]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
         var users = await _userService.GetAllAsync();
-        return Ok(users);
+
+        var dtoList = users.Select(u => new UserDto
+        {
+            UserName = u.UserName,
+            Email = u.Email,
+            Role = u.Role.ToString()
+        });
+
+        return Ok(dtoList);
     }
 
     [HttpGet("{id:guid}")]
