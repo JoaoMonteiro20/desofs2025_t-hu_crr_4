@@ -2,7 +2,7 @@ name: IAST - Simulated Test Analysis
 
 on:
   push:
-    branches: [ feature-iast ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
