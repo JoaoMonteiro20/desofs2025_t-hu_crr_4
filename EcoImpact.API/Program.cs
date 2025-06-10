@@ -142,7 +142,11 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EcoDbContext>();
+    dbContext.Database.Migrate(); // Aplica as migrations automaticamente
+}
 app.MapControllers();
 
 app.Run();
