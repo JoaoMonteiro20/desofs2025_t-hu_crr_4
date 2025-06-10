@@ -113,6 +113,12 @@ public class UserService : IUserService
         return true;
     }
 
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.UserName == username);
+    }
+
     public async Task<UserFileExportResult> ExportUsersAsJsonFileAsync()
     {
         var users = await _context.Users

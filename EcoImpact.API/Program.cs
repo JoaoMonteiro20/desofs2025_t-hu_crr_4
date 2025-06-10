@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 using EcoImpact.API.Services;
 using EcoImpact.API.Mapper;
 using System.Text.Json;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +27,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role,
     };
 
     options.Events = new JwtBearerEvents

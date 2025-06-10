@@ -88,10 +88,9 @@ public class HabitTypesController : ControllerBase
     }
 
     [HttpGet("quiz")]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<HabitTypeDto>>> GetQuizHabitTypes()
+    public async Task<ActionResult<List<HabitTypeDto>>> GetQuizQuestions()
     {
-        var habits = await _habitService.GetRandomQuizHabitTypesAsync();
-        return Ok(habits);
+        var questions = await _habitService.GetQuizHabitTypesByCategoryAsync();
+        return Ok(questions);
     }
 }

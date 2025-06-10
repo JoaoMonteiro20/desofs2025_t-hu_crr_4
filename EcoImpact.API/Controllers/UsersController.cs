@@ -86,4 +86,28 @@ public class UsersController : ControllerBase
 
         return Ok();
     }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    {
+  
+        var username = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+        if (string.IsNullOrWhiteSpace(username))
+            return Unauthorized();
+
+        var user = await _userService.GetByUsernameAsync(username);
+
+        if (user == null)
+            return Unauthorized();
+
+        return Ok(new UserDto
+        {
+            UserName = user.UserName,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            EcoScore = user.EcoScore
+        });
+    }
 }

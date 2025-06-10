@@ -1,12 +1,17 @@
 ﻿@page "/home"
 @using System.Text.Json
+@using EcoImpact.Frontend.Models
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager Navigation
 @inject IAuthService AuthService
+@inject HttpClient Http
 
 <h3>Bem-vindo, @username!</h3>
 
-<button @onclick="CalcularPegada">Calcular Pegada</button>
+@if (ecoScore.HasValue)
+{
+    <p><strong>Último EcoScore:</strong> @ecoScore.Value.ToString("F2") kg CO₂e</p>
+}
 
 @if (userRole == "Admin" || userRole == "Moderator")
 {
@@ -22,6 +27,7 @@
 @code {
     private string? username;
     private string? userRole;
+    private decimal? ecoScore;
 
     protected override async Task OnInitializedAsync()
     {
@@ -38,6 +44,25 @@
 
         if (string.IsNullOrWhiteSpace(username))
             username = "Utilizador";
+
+        try
+        {
+            Console.WriteLine("Token: " + token);
+            Console.WriteLine("Authorization Header: " + Http.DefaultRequestHeaders.Authorization);
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var user = await Http.GetFromJsonAsync<UserDto>("api/users/me");
+
+            if (user != null)
+            {
+                ecoScore = user.EcoScore;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao obter dados do utilizador: " + ex.Message);
+        }
     }
 
     public string? ObterClaimDoToken(string token, string claimKey)
@@ -71,11 +96,6 @@
     {
         string padded = base64Url.Replace('-', '+').Replace('_', '/');
         return padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
-    }
-
-    private void CalcularPegada()
-    {
-        Navigation.NavigateTo("/pegada");
     }
 
     private void VerUtilizadores()

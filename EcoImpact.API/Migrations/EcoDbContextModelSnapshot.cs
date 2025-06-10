@@ -86,6 +86,9 @@ namespace EcoImpact.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("Factor")
                         .HasColumnType("decimal(18,2)");
 
@@ -105,72 +108,74 @@ namespace EcoImpact.API.Migrations
                         new
                         {
                             HabitTypeId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Category = 0,
                             Factor = 0.192m,
                             Name = "Deslocação de carro (gasolina)",
                             Unit = "km"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            HabitTypeId = new Guid("11111111-1111-1111-1111-111111111112"),
+                            Category = 0,
                             Factor = 0.041m,
                             Name = "Viagem de comboio",
                             Unit = "km"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            HabitTypeId = new Guid("11111111-1111-1111-1111-111111111113"),
+                            Category = 0,
                             Factor = 0.255m,
                             Name = "Viagem de avião",
                             Unit = "km"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("44444444-4444-4444-4444-444444444444"),
-                            Factor = 0.233m,
-                            Name = "Consumo de eletricidade",
-                            Unit = "kWh"
-                        },
-                        new
-                        {
-                            HabitTypeId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            HabitTypeId = new Guid("22222222-2222-2222-2222-222222222221"),
+                            Category = 1,
                             Factor = 5.0m,
                             Name = "Refeição com carne",
                             Unit = "unidade"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("66666666-6666-6666-6666-666666666666"),
+                            HabitTypeId = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Category = 1,
                             Factor = 2.0m,
                             Name = "Refeição vegetariana",
                             Unit = "unidade"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("77777777-7777-7777-7777-777777777777"),
-                            Factor = 350m,
-                            Name = "Compra de bens eletrónicos",
+                            HabitTypeId = new Guid("22222222-2222-2222-2222-222222222223"),
+                            Category = 1,
+                            Factor = 1.5m,
+                            Name = "Refeição vegan",
                             Unit = "unidade"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("88888888-8888-8888-8888-888888888888"),
+                            HabitTypeId = new Guid("33333333-3333-3333-3333-333333333331"),
+                            Category = 2,
+                            Factor = 0.233m,
+                            Name = "Consumo de eletricidade",
+                            Unit = "kWh"
+                        },
+                        new
+                        {
+                            HabitTypeId = new Guid("33333333-3333-3333-3333-333333333332"),
+                            Category = 2,
                             Factor = 0.3m,
                             Name = "Banho quente (10 min)",
                             Unit = "minuto"
                         },
                         new
                         {
-                            HabitTypeId = new Guid("99999999-9999-9999-9999-999999999999"),
-                            Factor = -1.8m,
-                            Name = "Reciclagem de plástico",
-                            Unit = "kg"
-                        },
-                        new
-                        {
-                            HabitTypeId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-                            Factor = -21m,
-                            Name = "Plantação de árvores",
-                            Unit = "unidade"
+                            HabitTypeId = new Guid("33333333-3333-3333-3333-333333333333"),
+                            Category = 2,
+                            Factor = 1.2m,
+                            Name = "Uso de aquecedor elétrico",
+                            Unit = "hora"
                         });
                 });
 

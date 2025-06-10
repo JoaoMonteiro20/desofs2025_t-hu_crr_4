@@ -128,4 +128,22 @@ public class HabitTypeService : IHabitTypeService
             })
             .ToListAsync();
     }
+
+    public async Task<List<HabitTypeDto>> GetQuizHabitTypesByCategoryAsync()
+    {
+        var allHabits = await _context.HabitTypes.ToListAsync();
+
+        var selected = allHabits
+            .GroupBy(h => h.Category)
+            .SelectMany(g => g.OrderBy(_ => Guid.NewGuid()).Take(1)) // 1 por categoria
+            .ToList();
+
+        return selected.Select(h => new HabitTypeDto
+        {
+            Id = h.HabitTypeId,
+            Name = h.Name,
+            Unit = h.Unit,
+            Factor = h.Factor
+        }).ToList();
+    }
 }
