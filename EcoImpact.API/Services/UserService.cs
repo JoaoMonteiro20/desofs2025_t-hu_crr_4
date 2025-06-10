@@ -35,18 +35,18 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<User> CreateAsync(CreateUserDto dto)
+    public async Task<User> CreateAsync(CreateUserDto user1)
     {
-        _logger.LogInformation("Creating user with username: {UserName}", dto.UserName);
+        _logger.LogInformation("Creating user with username: {UserName}", user1.UserName);
 
-        _validator.Validate(dto);
+        _validator.Validate(user1);
 
         var user = new User
         {
-            UserName = dto.UserName,
-            Email = dto.Email,
+            UserName = user1.UserName,
+            Email = user1.Email,
             Role = UserRole.User,
-            Password = _passwordService.HashPassword(null!, dto.Password)
+            Password = _passwordService.HashPassword(null!, user1.Password)
         };
 
         _context.Users.Add(user);
@@ -56,12 +56,12 @@ public class UserService : IUserService
         return user;
     }
 
-    public async Task<User?> UpdateAsync(Guid userId, UserUpdateDto dto)
+    public async Task<User?> UpdateAsync(Guid id, UserUpdateDto dto)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users.FindAsync(id);
         if (user == null)
         {
-            _logger.LogWarning("User with ID {UserId} not found for update.", userId);
+            _logger.LogWarning("User with ID {UserId} not found for update.", id);
             return null;
         }
 
@@ -74,7 +74,7 @@ public class UserService : IUserService
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("User with ID {UserId} updated successfully.", userId);
+        _logger.LogInformation("User with ID {UserId} updated successfully.", id);
         return user;
     }
 
