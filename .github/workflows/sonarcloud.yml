@@ -3,7 +3,7 @@ name: SonarCloud Analysis - SAST
 on:
   push:
     branches:
-      - main
+      - resolve-quizz
   pull_request:
     types: [opened, synchronize, reopened]
   workflow_dispatch:

@@ -2,7 +2,7 @@ name: Build CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ resolve-quizz ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:  # rodar manualmente
