@@ -1,29 +1,32 @@
 version: '3.8'
 
 services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ecoimpact-sql
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    networks:
+      - ecoimpact-net
+
   ecoimpact-api:
-    image: ecoimpact-api
     build:
       context: .
       dockerfile: EcoImpact.API/Dockerfile
+    container_name: ecoimpact-api
     ports:
       - "7020:7020"
-    depends_on:
-      - sql
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Jwt__Key=EstaChaveSuperSeguraComPeloMenos32Chars!
-      - ConnectionStrings__DefaultConnection=Server=sql;Database=EcoImpactDb;User=sa;Password=MyPass123!
+      - ConnectionStrings__DefaultConnection=Server=sql,1433;Database=EcoImpactDb;User=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True;
+    depends_on:
+      - sql
+    networks:
+      - ecoimpact-net
 
-  sql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      SA_PASSWORD: "MyPass123!"
-      ACCEPT_EULA: "Y"
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql_data:/var/opt/mssql
-
-volumes:
-  sql_data:
+networks:
+  ecoimpact-net:
+    driver: bridge

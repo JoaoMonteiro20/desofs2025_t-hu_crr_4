@@ -88,8 +88,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<EcoDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.MigrationsAssembly("EcoImpact.API")
-    ));
+        sql =>
+        {
+            sql.MigrationsAssembly("EcoImpact.API");
+            sql.EnableRetryOnFailure(); 
+        }));
 
 // Controllers
 builder.Services.AddControllers();
