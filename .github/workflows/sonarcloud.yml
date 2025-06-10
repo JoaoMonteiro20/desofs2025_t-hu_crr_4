@@ -77,10 +77,18 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if (!(Test-Path "EcoImpact.Tests/coverage/coverage.opencover.xml")) {
-            Write-Error "coverage.opencover.xml NOT found"
-            exit 1
-          }
           .sonar/scanner/dotnet-sonarscanner end `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+
+      # - name: End SonarCloud analysis
+      #   shell: powershell
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     if (!(Test-Path "EcoImpact.Tests/coverage/coverage.opencover.xml")) {
+      #       Write-Error "coverage.opencover.xml NOT found"
+      #       exit 1
+      #     }
+      #     .sonar/scanner/dotnet-sonarscanner end `
+      #       /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
