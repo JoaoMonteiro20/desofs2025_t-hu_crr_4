@@ -1,0 +1,102 @@
+﻿@page "/quiz"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ILocalStorageService localStorage
+@inject IJSRuntime JS
+@using Blazored.LocalStorage
+@using EcoImpact.Frontend.Models
+
+<h3>Quiz de Hábitos Sustentáveis</h3>
+
+@if (habitTypes == null)
+{
+    <p>A carregar perguntas...</p>
+}
+else if (habitTypes.Count == 0)
+{
+    <p>Nenhum hábito disponível.</p>
+}
+else
+{
+    <EditForm Model="@answers" OnValidSubmit="SubmitQuiz">
+        <DataAnnotationsValidator />
+
+        @for (int i = 0; i < habitTypes.Count; i++)
+        {
+            <div class="mb-3">
+                <h5>@habitTypes[i].Category</h5>
+                <label>@habitTypes[i].Name (@habitTypes[i].Unit):</label>
+                <InputNumber @bind-Value="answers[i]" class="form-control" />
+            </div>
+        }
+
+        <button type="submit" class="btn btn-success">Submeter</button>
+    </EditForm>
+}
+
+@if (submitted)
+{
+    <div class="alert mt-4 @(showCongrats ? "alert-success" : "alert-info")">
+        @if (showCongrats)
+        {
+            <span>🎉 Parabéns! Obtiveste um EcoScore excelente!</span>
+            <button class="btn btn-secondary mt-3" @onclick="VoltarHome">Voltar para o Início</button>
+        }
+        else
+        {
+            <span>O teu EcoScore foi: <strong>@totalScore.ToString("0.00") kg CO₂e</strong></span>
+            <button class="btn btn-secondary mt-3" @onclick="VoltarHome">Voltar para o Início</button>
+        }
+    </div>
+}
+
+@code {
+    private List<HabitTypeDto>? habitTypes;
+    private List<decimal> answers = new();
+    private bool showCongrats = false;
+    private bool submitted = false;
+    private decimal totalScore = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var token = await localStorage.GetItemAsStringAsync("authToken");
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            habitTypes = await Http.GetFromJsonAsync<List<HabitTypeDto>>("api/habittypes/quiz");
+
+            if (habitTypes != null)
+            {
+                answers = Enumerable.Repeat(0m, habitTypes.Count).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao carregar quiz: " + ex.Message);
+        }
+    }
+
+    private async Task SubmitQuiz()
+    {
+        submitted = true;
+        totalScore = 0;
+
+        for (int i = 0; i < habitTypes!.Count; i++)
+        {
+            totalScore += answers[i] * habitTypes[i].Factor;
+        }
+
+        var saveDto = new SaveEcoScoreDto { Score = totalScore };
+
+        await Http.PostAsJsonAsync("api/users/quiz/save-score", saveDto);
+
+        showCongrats = totalScore < 50; // quanto menor, melhor
+    }
+
+    private void VoltarHome()
+    {
+        Navigation.NavigateTo("/home");
+    }
+}
