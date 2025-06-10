@@ -1,8 +1,6 @@
 ﻿using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,6 +13,31 @@ public class HabitTypesController : ControllerBase
     {
         _habitService = habitService;
         _logger = logger;
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin,Moderator")]
+    public async Task<ActionResult<HabitType>> Create([FromBody] HabitTypeDto dto)
+    {
+        _logger.LogInformation("Utilizador {User} a criar HabitType: {Name}", User.Identity?.Name, dto.Name);
+        var created = await _habitService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.HabitTypeId }, created);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin,Moderator")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        _logger.LogInformation("Utilizador {User} a tentar eliminar HabitType ID: {Id}", User.Identity?.Name, id);
+        var success = await _habitService.DeleteAsync(id);
+        if (!success)
+        {
+            _logger.LogWarning("Tentativa de eliminar HabitType não encontrado: {Id}", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("HabitType com ID {Id} eliminado com sucesso", id);
+        return NoContent();
     }
 
     [HttpGet]
@@ -39,13 +62,19 @@ public class HabitTypesController : ControllerBase
         return Ok(habit);
     }
 
-    [HttpPost]
-    [Authorize(Roles = "Admin,Moderator")]
-    public async Task<ActionResult<HabitType>> Create([FromBody] HabitTypeDto dto)
+    [HttpGet("quiz")]
+    public async Task<ActionResult<List<HabitTypeDto>>> GetQuizQuestions()
     {
-        _logger.LogInformation("Utilizador {User} a criar HabitType: {Name}", User.Identity?.Name, dto.Name);
-        var created = await _habitService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = created.HabitTypeId }, created);
+        var questions = await _habitService.GetQuizHabitTypesByCategoryAsync();
+        return Ok(questions);
+    }
+
+    [HttpPost("import")]
+    [Authorize(Roles = "Admin,Moderator")]
+    public async Task<IActionResult> ImportHabitTypes(IFormFile file)
+    {
+        var result = await _habitService.ImportFromFileAsync(file);
+        return Ok(result);
     }
 
     [HttpPut("{id:guid}")]
@@ -61,36 +90,5 @@ public class HabitTypesController : ControllerBase
         }
 
         return Ok(updated);
-    }
-
-    [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,Moderator")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        _logger.LogInformation("Utilizador {User} a tentar eliminar HabitType ID: {Id}", User.Identity?.Name, id);
-        var success = await _habitService.DeleteAsync(id);
-        if (!success)
-        {
-            _logger.LogWarning("Tentativa de eliminar HabitType não encontrado: {Id}", id);
-            return NotFound();
-        }
-
-        _logger.LogInformation("HabitType com ID {Id} eliminado com sucesso", id);
-        return NoContent();
-    }
-
-    [HttpPost("import")]
-    [Authorize(Roles = "Admin,Moderator")]
-    public async Task<IActionResult> ImportHabitTypes(IFormFile file)
-    {
-        var result = await _habitService.ImportFromFileAsync(file);
-        return Ok(result);
-    }
-
-    [HttpGet("quiz")]
-    public async Task<ActionResult<List<HabitTypeDto>>> GetQuizQuestions()
-    {
-        var questions = await _habitService.GetQuizHabitTypesByCategoryAsync();
-        return Ok(questions);
     }
 }
