@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using EcoImpact.DataModel.Models;
+using System.Data;
 
 namespace EcoImpact.DataModel;
 
@@ -46,6 +47,15 @@ public class EcoDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
 
+        modelBuilder.Entity<User>().HasData(
+    new User
+    {
+        UserId = Guid.Parse("11111111-1111-1111-1111-111111111111"), // ou outro GUID fixo
+        UserName = "admin",
+        Email = "admin@ecoimpact.local",
+        Password = "AQAAAAIAAYagAAAAEEISJn23wqjANxH/pmq3ug2f+MTVEF+p5yB7TORYNv6wFmeRVaTTL1G1objmD/A9Dg==",
+        Role = UserRole.Admin
+    });
         modelBuilder.Entity<HabitType>().HasData(
         // Transporte
         new HabitType

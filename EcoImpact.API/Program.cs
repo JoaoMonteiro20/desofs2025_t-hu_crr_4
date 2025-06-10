@@ -9,6 +9,8 @@ using EcoImpact.API.Mapper;
 using System.Text.Json;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using EcoImpact.DataModel.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,7 +125,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 
 var app = builder.Build();
 
