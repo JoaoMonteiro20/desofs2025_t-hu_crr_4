@@ -45,7 +45,7 @@ public class UserService : IUserService
         {
             UserName = dto.UserName,
             Email = dto.Email,
-            Role = dto.Role,
+            Role = UserRole.User,
             Password = _passwordService.HashPassword(null!, dto.Password)
         };
 
@@ -113,6 +113,12 @@ public class UserService : IUserService
         return true;
     }
 
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.UserName == username);
+    }
+
     public async Task<UserFileExportResult> ExportUsersAsJsonFileAsync()
     {
         var users = await _context.Users
@@ -137,5 +143,15 @@ public class UserService : IUserService
             ContentType = "application/json",
             FileName = "users_export.json"
         };
+    }
+
+    public async Task<bool> UpdateEcoScoreAsync(string username, decimal score)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        if (user == null) return false;
+
+        user.EcoScore = score;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

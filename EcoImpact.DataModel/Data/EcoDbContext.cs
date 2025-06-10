@@ -45,17 +45,85 @@ public class EcoDbContext : DbContext
             .HasForeignKey(al => al.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+
         modelBuilder.Entity<HabitType>().HasData(
-    new HabitType { HabitTypeId = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Deslocação de carro (gasolina)", Unit = "km", Factor = 0.192M },
-    new HabitType { HabitTypeId = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Viagem de comboio", Unit = "km", Factor = 0.041M },
-    new HabitType { HabitTypeId = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "Viagem de avião", Unit = "km", Factor = 0.255M },
-    new HabitType { HabitTypeId = Guid.Parse("44444444-4444-4444-4444-444444444444"), Name = "Consumo de eletricidade", Unit = "kWh", Factor = 0.233M },
-    new HabitType { HabitTypeId = Guid.Parse("55555555-5555-5555-5555-555555555555"), Name = "Refeição com carne", Unit = "unidade", Factor = 5.0M },
-    new HabitType { HabitTypeId = Guid.Parse("66666666-6666-6666-6666-666666666666"), Name = "Refeição vegetariana", Unit = "unidade", Factor = 2.0M },
-    new HabitType { HabitTypeId = Guid.Parse("77777777-7777-7777-7777-777777777777"), Name = "Compra de bens eletrónicos", Unit = "unidade", Factor = 350M },
-    new HabitType { HabitTypeId = Guid.Parse("88888888-8888-8888-8888-888888888888"), Name = "Banho quente (10 min)", Unit = "minuto", Factor = 0.3M },
-    new HabitType { HabitTypeId = Guid.Parse("99999999-9999-9999-9999-999999999999"), Name = "Reciclagem de plástico", Unit = "kg", Factor = -1.8M },
-    new HabitType { HabitTypeId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), Name = "Plantação de árvores", Unit = "unidade", Factor = -21M }
-);
+        // Transporte
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Name = "Deslocação de carro (gasolina)",
+            Unit = "km",
+            Factor = 0.192M,
+            Category = HabitCategory.Transporte
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("11111111-1111-1111-1111-111111111112"),
+            Name = "Viagem de comboio",
+            Unit = "km",
+            Factor = 0.041M,
+            Category = HabitCategory.Transporte
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("11111111-1111-1111-1111-111111111113"),
+            Name = "Viagem de avião",
+            Unit = "km",
+            Factor = 0.255M,
+            Category = HabitCategory.Transporte
+        },
+
+        // Alimentação
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("22222222-2222-2222-2222-222222222221"),
+            Name = "Refeição com carne",
+            Unit = "unidade",
+            Factor = 5.0M,
+            Category = HabitCategory.Alimentacao
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Name = "Refeição vegetariana",
+            Unit = "unidade",
+            Factor = 2.0M,
+            Category = HabitCategory.Alimentacao
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("22222222-2222-2222-2222-222222222223"),
+            Name = "Refeição vegan",
+            Unit = "unidade",
+            Factor = 1.5M,
+            Category = HabitCategory.Alimentacao
+        },
+
+        // Energia
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("33333333-3333-3333-3333-333333333331"),
+            Name = "Consumo de eletricidade",
+            Unit = "kWh",
+            Factor = 0.233M,
+            Category = HabitCategory.Energia
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("33333333-3333-3333-3333-333333333332"),
+            Name = "Banho quente (10 min)",
+            Unit = "minuto",
+            Factor = 0.3M,
+            Category = HabitCategory.Energia
+        },
+        new HabitType
+        {
+            HabitTypeId = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+            Name = "Uso de aquecedor elétrico",
+            Unit = "hora",
+            Factor = 1.2M,
+            Category = HabitCategory.Energia
+        }
+    );
     }
-}
+    }

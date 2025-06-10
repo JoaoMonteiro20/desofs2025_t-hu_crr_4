@@ -3,6 +3,7 @@ using EcoImpact.DataModel.Models;
 using Microsoft.AspNetCore.Authorization;
 using EcoImpact.DataModel.Dtos;
 using EcoImpact.API.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace EcoImpact.API.Controllers;
 
@@ -19,10 +20,18 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin,Moderator")]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
         var users = await _userService.GetAllAsync();
-        return Ok(users);
+
+        var dtoList = users.Select(u => new UserDto
+        {
+            UserName = u.UserName,
+            Email = u.Email,
+            Role = u.Role.ToString()
+        });
+
+        return Ok(dtoList);
     }
 
     [HttpGet("{id:guid}")]
@@ -64,5 +73,41 @@ public class UsersController : ControllerBase
     {
         var result = await _userService.ExportUsersAsJsonFileAsync();
         return File(result.FileContent, result.ContentType, result.FileName);
+    }
+
+    [HttpPost("quiz/save-score")]
+    public async Task<IActionResult> SaveEcoScore([FromBody] SaveEcoScoreDto dto)
+    {
+        var siid = User.Identity?.Name;
+        if (string.IsNullOrEmpty(siid)) return Unauthorized();
+
+        var sucesso = await _userService.UpdateEcoScoreAsync(siid, dto.Score);
+        if (!sucesso) return NotFound();
+
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    {
+  
+        var username = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+
+        if (string.IsNullOrWhiteSpace(username))
+            return Unauthorized();
+
+        var user = await _userService.GetByUsernameAsync(username);
+
+        if (user == null)
+            return Unauthorized();
+
+        return Ok(new UserDto
+        {
+            UserName = user.UserName,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            EcoScore = user.EcoScore
+        });
     }
 }

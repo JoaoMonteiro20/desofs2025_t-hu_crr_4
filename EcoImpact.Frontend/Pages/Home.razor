@@ -1,0 +1,116 @@
+﻿@page "/home"
+@using System.Text.Json
+@using EcoImpact.Frontend.Models
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager Navigation
+@inject IAuthService AuthService
+@inject HttpClient Http
+
+<h3>Bem-vindo, @username!</h3>
+
+@if (ecoScore.HasValue)
+{
+    <p><strong>Último EcoScore:</strong> @ecoScore.Value.ToString("F2") kg CO₂e</p>
+}
+
+@if (userRole == "Admin" || userRole == "Moderator")
+{
+    <button @onclick="VerUtilizadores">Ver Utilizadores</button>
+}
+@if (userRole == "User")
+{
+    <button class="btn btn-success" @onclick="IrParaQuiz">Fazer Quiz</button>
+}
+
+<button class="btn btn-danger" @onclick="Logout">Logout</button>
+
+@code {
+    private string? username;
+    private string? userRole;
+    private decimal? ecoScore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await localStorage.GetItemAsStringAsync("authToken");
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        username = ObterClaimDoToken(token, "name");
+        userRole = ObterClaimDoToken(token, "role");
+
+        if (string.IsNullOrWhiteSpace(username))
+            username = "Utilizador";
+
+        try
+        {
+            Console.WriteLine("Token: " + token);
+            Console.WriteLine("Authorization Header: " + Http.DefaultRequestHeaders.Authorization);
+            Http.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var user = await Http.GetFromJsonAsync<UserDto>("api/users/me");
+
+            if (user != null)
+            {
+                ecoScore = user.EcoScore;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao obter dados do utilizador: " + ex.Message);
+        }
+    }
+
+    public string? ObterClaimDoToken(string token, string claimKey)
+    {
+        try
+        {
+            var claimMap = new Dictionary<string, string>
+                {
+                    ["name"] = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+                    ["role"] = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+                };
+
+            var mappedClaim = claimMap.TryGetValue(claimKey, out var mapped) ? mapped : claimKey;
+
+            var payload = token.Split('.')[1];
+            var jsonBytes = Convert.FromBase64String(PadBase64(payload));
+            var payloadJson = JsonDocument.Parse(jsonBytes);
+
+            if (payloadJson.RootElement.TryGetProperty(mappedClaim, out var claim))
+                return claim.GetString();
+        }
+        catch
+        {
+            // Ignorar erros
+        }
+
+        return null;
+    }
+
+    private string PadBase64(string base64Url)
+    {
+        string padded = base64Url.Replace('-', '+').Replace('_', '/');
+        return padded.PadRight(padded.Length + (4 - padded.Length % 4) % 4, '=');
+    }
+
+    private void VerUtilizadores()
+    {
+        Navigation.NavigateTo("/users");
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    private void IrParaQuiz()
+    {
+        Navigation.NavigateTo("/quiz");
+    }
+}
