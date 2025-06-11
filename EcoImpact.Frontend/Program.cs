@@ -5,13 +5,13 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
-// Configurar appsettings com base no ambiente
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                     .AddJsonFile($"appsettings.{builder.HostEnvironment.Environment}.json", optional: true, reloadOnChange: true);
+// Load appsettings.json from wwwroot
+using var http = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+var configStream = await http.GetStreamAsync("appsettings.json");
+var config = await System.Text.Json.JsonSerializer.DeserializeAsync<Dictionary<string, string>>(configStream);
 
-// Usa o valor da configuração para a base URL da API
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
-
+// Read API base URL
+var apiBaseUrl = config["ApiBaseUrl"];
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
 
 builder.Services.AddBlazoredLocalStorage();

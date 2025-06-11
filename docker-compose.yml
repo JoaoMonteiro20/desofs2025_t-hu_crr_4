@@ -26,20 +26,18 @@ services:
       - sql
     networks:
       - ecoimpact-net
-    
+
   ecoimpact-frontend:
-      build:
-      context: .
-        dockerfile: EcoImpact.Frontend/Dockerfile
-      container_name: ecoimpact-frontend
-      ports:
-        - "7001:80"
-      depends_on:
-        - ecoimpact-api
-      networks:
-        - ecoimpact-net
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Docker
+    build:
+      context: ./EcoImpact.Frontend
+      dockerfile: Dockerfile
+    container_name: ecoimpact-frontend
+    ports:
+      - "7001:80"  
+    depends_on:
+      - ecoimpact-api
+    networks:
+      - ecoimpact-net
 
 networks:
   ecoimpact-net:
