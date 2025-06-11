@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: ecoimpact-api
+    env: docker
+    plan: free
+    dockerfilePath: EcoImpact.API/Dockerfile
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Development
+      - key: ConnectionStrings__DefaultConnection
+        value: Server=sql,1433;Database=EcoImpactDb;User=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True;
+
+  - type: web
+    name: ecoimpact-frontend
+    env: docker
+    plan: free
+    dockerfilePath: EcoImpact.Frontend/Dockerfile
+    buildCommand: ""
+    startCommand: ""
+    envVars: []
