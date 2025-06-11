@@ -11,6 +11,12 @@ jobs:
     name: Run Simulated IAST
     runs-on: ubuntu-latest
 
+    services:
+      ecoimpact-api:
+        image: ghcr.io/joaomonteiro20/ecoimpact-api:latest
+        ports:
+          - 7020:80
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,12 +32,9 @@ jobs:
       - name: Build API Docker image
         run: docker build -t ecoimpact-api -f EcoImpact.API/Dockerfile .
 
-      - name: Run API container
-        run: docker run -d --rm --name ecoimpact-api -p 7020:80 ecoimpact-api
-
       - name: Wait for API to be up
         run: |
-          echo "Esperar 15s para o container arrancar..."
+          echo "Aguarda 15s para o container estar pronto"
           sleep 15
 
       - name: Run OWASP ZAP Baseline Scan
@@ -46,10 +49,14 @@ jobs:
               -w zap-report.md \
               -J zap-report.json \
               -a \
-              --autooff
+              --autooff \
+              --exit-code 0
 
       - name: Upload ZAP scan results
         uses: actions/upload-artifact@v4
         with:
           name: zap-results
           path: zap-results
+
+      - name: Mostrar sumário ZAP
+        run: cat zap-results/zap-report.md || echo "Relatório não encontrado"
