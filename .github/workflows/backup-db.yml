@@ -1,43 +1,50 @@
-name: Backup SQL Server
+name: Scheduled DB Backup
 
 on:
-  workflow_dispatch:  
+  schedule:
+    - cron: '0 3 * * 0'  
+  workflow_dispatch:
 
 jobs:
   db-backup:
-    name: Backup SQL Server database
     runs-on: ubuntu-latest
 
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          SA_PASSWORD: "YourStrong!Passw0rd"
+          ACCEPT_EULA: "Y"
+
     steps:
-      - name: Criar volume local para backup
-        run: mkdir -p sql-backup
-
-      - name: Iniciar SQL Server em container com volume de backup
-        run: |
-          docker run -d --name sqlserver \
-            -e 'ACCEPT_EULA=Y' \
-            -e 'SA_PASSWORD=YourStrong!Passw0rd' \
-            -p 1433:1433 \
-            -v ${{ github.workspace }}/sql-backup:/var/opt/mssql/backup \
-            mcr.microsoft.com/mssql/server:2022-latest
-
       - name: Esperar 20s para SQL arrancar
         run: sleep 20
 
-      - name: Criar base de dados fictícia (se necessário)
+      - name: Verificar alterações na BD
         run: |
-          docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
-            -S localhost -U sa -P "YourStrong!Passw0rd" \
-            -Q "IF DB_ID('EcoImpactDB') IS NULL CREATE DATABASE EcoImpactDB"
+          HAS_CHANGES=$(docker exec $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server:2022-latest) \
+            /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" \
+            -Q "SELECT CASE WHEN EXISTS (SELECT 1 FROM ChangesLog WHERE Date >= DATEADD(DAY, -7, GETDATE())) THEN 'yes' ELSE 'no' END")
+          
+          echo "CHANGES_FOUND=$HAS_CHANGES" >> $GITHUB_ENV
+
+      - name: Criar pasta de backup
+        if: env.CHANGES_FOUND == 'yes'
+        run: mkdir -p sql-backup
 
       - name: Executar backup
+        if: env.CHANGES_FOUND == 'yes'
         run: |
-          docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
-            -S localhost -U sa -P "YourStrong!Passw0rd" \
-            -Q "BACKUP DATABASE EcoImpactDB TO DISK = '/var/opt/mssql/backup/ecoimpact.bak'"
+          docker exec $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server:2022-latest) \
+          /opt/mssql-tools/bin/sqlcmd \
+          -S localhost -U sa -P "YourStrong!Passw0rd" \
+          -Q "BACKUP DATABASE EcoImpactDB TO DISK = '/var/opt/mssql/backup/ecoimpact.bak'"
 
-      - name: Upload do ficheiro de backup
+      - name: Guardar artefacto do backup
+        if: env.CHANGES_FOUND == 'yes'
         uses: actions/upload-artifact@v4
         with:
           name: ecoimpact-db-backup
-          path: sql-backup/ecoimpact.bak
+          path: /var/opt/mssql/backup/ecoimpact.bak
