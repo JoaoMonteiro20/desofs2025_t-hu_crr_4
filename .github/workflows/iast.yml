@@ -1,4 +1,4 @@
-name: Simulated DAST with ZAP
+name: Simulated IAST with ZAP and Coverage
 
 on:
   push:
@@ -7,12 +7,26 @@ on:
     branches: [main]
 
 jobs:
-  zap-dast:
-    name: Run OWASP ZAP DAST
+  iast:
+    name: Simulated IAST
     runs-on: ubuntu-latest
 
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: "YourStrong!Passw0rd"
+          ACCEPT_EULA: "Y"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "exit 0"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup .NET
@@ -23,40 +37,52 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore EcoImpactSimulator.sln
 
-      - name: Build solution
-        run: dotnet build EcoImpactSimulator.sln --configuration Release --no-restore
-
-      - name: Build Docker image for API
+      - name: Build API Docker image
         run: docker build -t ecoimpact-api -f EcoImpact.API/Dockerfile .
 
       - name: Run API container
         run: |
-          docker run -d --name ecoimpact-api -p 7020:80 ecoimpact-api
-          echo "Aguardando API subir..."
-          sleep 15
+          docker network create ecoimpact-net
+          docker run -d --name ecoimpact-api \
+            --network ecoimpact-net \
+            -e ASPNETCORE_ENVIRONMENT=Development \
+            -e ConnectionStrings__DefaultConnection="Server=sql,1433;Database=EcoImpactDb;User=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True;" \
+            -p 7020:7020 \
+            ecoimpact-api
 
-      - name: Create results folder
-        run: mkdir -p zap-results
+      - name: Wait for API to be ready
+        run: sleep 20
 
-      - name: Run ZAP Baseline Scan
+      - name: Run OWASP ZAP Baseline Scan (Simulated IAST)
         run: |
+          mkdir -p zap-results
           docker run --rm \
-            --network host \
+            --network ecoimpact-net \
             -v ${{ github.workspace }}/zap-results:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-              -t http://localhost:7020 \
+              -t http://ecoimpact-api:7020 \
               -r zap-report.html \
               -w zap-report.md \
               -J zap-report.json \
               -a \
               --autooff
 
-      - name: Upload ZAP results
+      - name: Run Unit Tests with Coverage (Simulated Runtime Analysis)
+        run: |
+          mkdir -p test-results/coverage
+          dotnet test EcoImpactSimulator.sln \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./test-results/coverage \
+            --logger trx
+
+      - name: Upload ZAP Results
         uses: actions/upload-artifact@v4
         with:
           name: zap-results
           path: zap-results
 
-      - name: Stop and remove API container
-        if: always()
-        run: docker stop ecoimpact-api && docker rm ecoimpact-api
+      - name: Upload Coverage Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-results
+          path: test-results/coverage
