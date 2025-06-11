@@ -1,21 +1,15 @@
-name: Simulated IAST with ZAP and Coverlet
+name: Simulated DAST with ZAP
 
 on:
   push:
-    branches: [ resolve-dast ]
+    branches: [resolve-dast]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  simulated-iast:
-    name: Run Simulated IAST
+  zap-dast:
+    name: Run OWASP ZAP DAST
     runs-on: ubuntu-latest
-
-    services:
-      ecoimpact-api:
-        image: ghcr.io/joaomonteiro20/ecoimpact-api:latest
-        ports:
-          - 7020:80
 
     steps:
       - name: Checkout repository
@@ -29,17 +23,23 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore EcoImpactSimulator.sln
 
-      - name: Build API Docker image
+      - name: Build solution
+        run: dotnet build EcoImpactSimulator.sln --configuration Release --no-restore
+
+      - name: Build Docker image for API
         run: docker build -t ecoimpact-api -f EcoImpact.API/Dockerfile .
 
-      - name: Wait for API to be up
+      - name: Run API container
         run: |
-          echo "Aguarda 15s para o container estar pronto"
+          docker run -d --name ecoimpact-api -p 7020:80 ecoimpact-api
+          echo "Aguardando API subir..."
           sleep 15
 
-      - name: Run OWASP ZAP Baseline Scan
+      - name: Create results folder
+        run: mkdir -p zap-results
+
+      - name: Run ZAP Baseline Scan
         run: |
-          mkdir -p zap-results
           docker run --rm \
             --network host \
             -v ${{ github.workspace }}/zap-results:/zap/wrk \
@@ -49,14 +49,14 @@ jobs:
               -w zap-report.md \
               -J zap-report.json \
               -a \
-              --autooff \
-              --exit-code 0
+              --autooff
 
-      - name: Upload ZAP scan results
+      - name: Upload ZAP results
         uses: actions/upload-artifact@v4
         with:
           name: zap-results
           path: zap-results
 
-      - name: Mostrar sumário ZAP
-        run: cat zap-results/zap-report.md || echo "Relatório não encontrado"
+      - name: Stop and remove API container
+        if: always()
+        run: docker stop ecoimpact-api && docker rm ecoimpact-api
