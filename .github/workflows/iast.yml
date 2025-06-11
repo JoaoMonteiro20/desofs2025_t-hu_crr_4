@@ -1,40 +1,74 @@
-name: IAST - Simulated Test Analysis
+name: Simulated IAST with ZAP and Coverlet
 
 on:
   push:
-    branches: [ main ]
+    branches: [ resolve-dast ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  iast:
+  simulated-iast:
     name: Run Simulated IAST
     runs-on: ubuntu-latest
 
+    services:
+      ecoimpact-api:
+        image: ghcr.io/joaomonteiro20/ecoimpact-api:latest
+        ports:
+          - 7020:80
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore dependencies
-      run: dotnet restore EcoImpactSimulator.sln
+      - name: Restore dependencies
+        run: dotnet restore EcoImpactSimulator.sln
 
-    - name: Build the solution
-      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+      - name: Build solution
+        run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
 
-    - name: Run tests and collect results
-      run: |
-        mkdir test-results
-        dotnet test EcoImpactSimulator.sln \
-          --logger "trx;LogFileName=test-results/test_results.trx" \
-          --results-directory test-results
+      - name: Run unit tests with Coverlet (collect coverage)
+        run: |
+          mkdir -p test-results/coverage
+          dotnet test EcoImpact.Tests/EcoImpact.Tests.csproj \
+            --no-build \
+            --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=test-results/coverage/ \
+            /p:CoverletOutputFormat=cobertura
 
-    - name: Upload test results (simulated runtime analysis)
-      uses: actions/upload-artifact@v4
-      with:
-        name: iast-results
-        path: test-results
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: test-results/coverage
+
+      - name: Wait for API to be up
+        run: |
+          echo "Esperar 15s para o container arrancar"
+          sleep 15
+
+      - name: Run OWASP ZAP Baseline Scan
+        run: |
+          mkdir -p zap-results
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/zap-results:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+              -t http://localhost:7020 \
+              -r zap-report.html \
+              -w zap-report.md \
+              -J zap-report.json \
+              -a \
+              --autooff
+
+      - name: Upload ZAP scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-results
+          path: zap-results

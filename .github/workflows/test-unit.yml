@@ -1,0 +1,40 @@
+name: Test Unit - Automate Unit Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-test:
+    name: Run Simulated Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore EcoImpactSimulator.sln
+
+    - name: Build the solution
+      run: dotnet build EcoImpactSimulator.sln --no-restore --configuration Release
+
+    - name: Run tests and collect results
+      run: |
+        mkdir test-results
+        dotnet test EcoImpactSimulator.sln \
+          --logger "trx;LogFileName=test-results/test_results.trx" \
+          --results-directory test-results
+
+    - name: Upload test results (simulated runtime analysis)
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-unit-results
+        path: test-results
