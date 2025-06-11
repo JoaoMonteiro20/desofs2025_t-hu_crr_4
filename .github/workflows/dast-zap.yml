@@ -49,8 +49,9 @@ jobs:
         run: |
           mkdir -p zap-results
           docker run --rm \
-            -v ${{ github.workspace }}/zap-results:/zap/wrk \
+            --network host \
             --user root \
+            -v ${{ github.workspace }}/zap-results:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://localhost:7020 \
               -r zap-report.html \
