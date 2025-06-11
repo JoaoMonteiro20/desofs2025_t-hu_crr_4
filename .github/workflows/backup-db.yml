@@ -2,7 +2,7 @@ name: Scheduled DB Backup
 
 on:
   push:
-    branches: [ resolve-dast ] 
+    branches: [ resolve-dast ]
   schedule:
     - cron: '0 3 * * 0'  
   workflow_dispatch:
@@ -24,13 +24,16 @@ jobs:
       - name: Esperar 20s para SQL arrancar
         run: sleep 20
 
-      - name: Verificar alterações na BD
-        run: |
-          docker run --rm mcr.microsoft.com/mssql-tools \
-            /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "YourStrong!Passw0rd" \
-            -Q "IF EXISTS (SELECT 1 FROM ChangesLog WHERE Date >= DATEADD(DAY, -7, GETDATE())) PRINT 'yes' ELSE PRINT 'no'" > result.txt
+      - name: Verificar alterações na BD (usando container tools)
+        uses: docker://mcr.microsoft.com/mssql-tools
+        with:
+          entrypoint: /bin/bash
+          args: -c "/opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -Q \"IF EXISTS (SELECT 1 FROM ChangesLog WHERE Date >= DATEADD(DAY, -7, GETDATE())) PRINT 'yes' ELSE PRINT 'no'\" > /github/workspace/result.txt"
 
-          VALUE=$(cat result.txt | tail -n 1 | tr -d '\r')
+      - name: Processar resultado
+        run: |
+          VALUE=$(tail -n 1 result.txt | tr -d '\r')
+          echo "CHANGES_FOUND=$VALUE"
           echo "CHANGES_FOUND=$VALUE" >> $GITHUB_ENV
 
       - name: Criar pasta de backup
@@ -41,13 +44,18 @@ jobs:
         if: env.CHANGES_FOUND == 'yes'
         run: |
           docker exec $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server:2022-latest) \
-          /opt/mssql-tools/bin/sqlcmd \
-          -S localhost -U sa -P "YourStrong!Passw0rd" \
-          -Q "BACKUP DATABASE EcoImpactDB TO DISK = '/var/opt/mssql/backup/ecoimpact.bak'"
+            /opt/mssql-tools/bin/sqlcmd \
+            -S localhost -U sa -P "YourStrong!Passw0rd" \
+            -Q "BACKUP DATABASE EcoImpactDB TO DISK = '/var/opt/mssql/backup/ecoimpact.bak'"
+
+      - name: Copiar ficheiro de backup do container
+        if: env.CHANGES_FOUND == 'yes'
+        run: |
+          docker cp $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server:2022-latest):/var/opt/mssql/backup/ecoimpact.bak ./sql-backup/
 
       - name: Guardar artefacto do backup
         if: env.CHANGES_FOUND == 'yes'
         uses: actions/upload-artifact@v4
         with:
           name: ecoimpact-db-backup
-          path: /var/opt/mssql/backup/ecoimpact.bak
+          path: ./sql-backup/ecoimpact.bak
