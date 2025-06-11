@@ -1,0 +1,43 @@
+name: Backup SQL Server
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  db-backup:
+    name: Backup SQL Server database
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Criar volume local para backup
+        run: mkdir -p sql-backup
+
+      - name: Iniciar SQL Server em container com volume de backup
+        run: |
+          docker run -d --name sqlserver \
+            -e 'ACCEPT_EULA=Y' \
+            -e 'SA_PASSWORD=YourStrong!Passw0rd' \
+            -p 1433:1433 \
+            -v ${{ github.workspace }}/sql-backup:/var/opt/mssql/backup \
+            mcr.microsoft.com/mssql/server:2022-latest
+
+      - name: Esperar 20s para SQL arrancar
+        run: sleep 20
+
+      - name: Criar base de dados fictícia (se necessário)
+        run: |
+          docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
+            -S localhost -U sa -P "YourStrong!Passw0rd" \
+            -Q "IF DB_ID('EcoImpactDB') IS NULL CREATE DATABASE EcoImpactDB"
+
+      - name: Executar backup
+        run: |
+          docker exec sqlserver /opt/mssql-tools/bin/sqlcmd \
+            -S localhost -U sa -P "YourStrong!Passw0rd" \
+            -Q "BACKUP DATABASE EcoImpactDB TO DISK = '/var/opt/mssql/backup/ecoimpact.bak'"
+
+      - name: Upload do ficheiro de backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecoimpact-db-backup
+          path: sql-backup/ecoimpact.bak
