@@ -57,6 +57,7 @@ jobs:
         run: |
           mkdir -p zap-results
           docker run --rm \
+            --user 1001 \
             --network ecoimpact-net \
             -v ${{ github.workspace }}/zap-results:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
@@ -66,6 +67,7 @@ jobs:
               -J zap-report.json \
               -a \
               --autooff
+
 
       - name: Run Unit Tests with Coverage (Simulated Runtime Analysis)
         run: |
