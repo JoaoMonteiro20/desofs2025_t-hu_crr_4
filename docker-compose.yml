@@ -1,29 +1,44 @@
-version: '3.9'
+version: '3.8'
 
 services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ecoimpact-sql
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    networks:
+      - ecoimpact-net
+
   ecoimpact-api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: EcoImpact.API/Dockerfile
+    container_name: ecoimpact-api
     ports:
       - "7020:7020"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:7020
+      - ConnectionStrings__DefaultConnection=Server=sql,1433;Database=EcoImpactDb;User=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True;
+    depends_on:
+      - sql
+    networks:
+      - ecoimpact-net
+
+  ecoimpact-frontend:
+    build:
+      context: ./EcoImpact.Frontend
+      dockerfile: Dockerfile
+    container_name: ecoimpact-frontend
+    ports:
+      - "7001:80"  
+    depends_on:
+      - ecoimpact-api
+    networks:
+      - ecoimpact-net
 
 networks:
-  default:
-    name: ecoimpact_default
-
-
-# version: '3.9'
-
-# services:
-#   ecoimpact-api:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#     ports:
-#       - "7020:7020" # usar porta 7020 interna, 7020 externa
-#     environment:
-#       - ASPNETCORE_ENVIRONMENT=Development
+  ecoimpact-net:
+    driver: bridge

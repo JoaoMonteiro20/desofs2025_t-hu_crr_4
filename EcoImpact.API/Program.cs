@@ -9,6 +9,8 @@ using EcoImpact.API.Mapper;
 using System.Text.Json;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using EcoImpact.DataModel.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,7 +79,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:7001")
+        policy.WithOrigins("http://localhost:7001")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -86,8 +88,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<EcoDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.MigrationsAssembly("EcoImpact.API")
-    ));
+        sql =>
+        {
+            sql.MigrationsAssembly("EcoImpact.API");
+            sql.EnableRetryOnFailure(); 
+        }));
 
 // Controllers
 builder.Services.AddControllers();
@@ -124,7 +129,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
 
 // Middleware
@@ -138,7 +142,11 @@ app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
-
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EcoDbContext>();
+    dbContext.Database.Migrate(); // Aplica as migrations automaticamente
+}
 app.MapControllers();
 
 app.Run();
