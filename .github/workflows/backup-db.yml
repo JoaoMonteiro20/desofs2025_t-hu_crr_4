@@ -26,11 +26,12 @@ jobs:
 
       - name: Verificar alterações na BD
         run: |
-          HAS_CHANGES=$(docker exec $(docker ps -q -f ancestor=mcr.microsoft.com/mssql/server:2022-latest) \
-            /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" \
-            -Q "SELECT CASE WHEN EXISTS (SELECT 1 FROM ChangesLog WHERE Date >= DATEADD(DAY, -7, GETDATE())) THEN 'yes' ELSE 'no' END")
-          
-          echo "CHANGES_FOUND=$HAS_CHANGES" >> $GITHUB_ENV
+          docker run --rm mcr.microsoft.com/mssql-tools \
+            /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "YourStrong!Passw0rd" \
+            -Q "IF EXISTS (SELECT 1 FROM ChangesLog WHERE Date >= DATEADD(DAY, -7, GETDATE())) PRINT 'yes' ELSE PRINT 'no'" > result.txt
+
+          VALUE=$(cat result.txt | tail -n 1 | tr -d '\r')
+          echo "CHANGES_FOUND=$VALUE" >> $GITHUB_ENV
 
       - name: Criar pasta de backup
         if: env.CHANGES_FOUND == 'yes'
