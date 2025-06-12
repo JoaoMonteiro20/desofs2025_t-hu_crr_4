@@ -1,21 +1,20 @@
-using EcoImpact.DataModel;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using EcoImpact.API.Services;
 using EcoImpact.API.Mapper;
-using System.Text.Json;
+using EcoImpact.API.Services;
+using EcoImpact.DataModel;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using EcoImpact.DataModel.Models;
-using Microsoft.AspNetCore.Identity;
+using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // JWT config
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!);
+var jwtSecret = Environment.GetEnvironmentVariable("JWT")
+    ?? throw new Exception("JWT não definido nas variáveis de ambiente.");
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -69,7 +68,7 @@ builder.Services.AddScoped<IHabitTypeService, HabitTypeService>();
 builder.Services.AddScoped<IUserChoiceService, UserChoiceService>();
 builder.Services.AddScoped<IHabitTypeMapper, HabitTypeMapper>();
 builder.Services.AddScoped<IUserValidator, UserValidator>();
-builder.Services.AddScoped<IUserMapper,UserMapper>();
+builder.Services.AddScoped<IUserMapper, UserMapper>();
 builder.Services.AddSingleton(new JsonSerializerOptions
 {
     PropertyNameCaseInsensitive = true

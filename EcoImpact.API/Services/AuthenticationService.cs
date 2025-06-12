@@ -13,18 +13,15 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly EcoDbContext _context;
     private readonly IPasswordService _passwordService;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
         EcoDbContext context,
         IPasswordService passwordService,
-        IConfiguration configuration,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
         _passwordService = passwordService;
-        _configuration = configuration;
         _logger = logger;
     }
 
@@ -75,7 +72,10 @@ public class AuthenticationService : IAuthenticationService
         new Claim(ClaimTypes.Role, user.Role.ToString())
     };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT")?.Trim()
+        ?? throw new Exception("JWT não definido nas variáveis de ambiente.");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
