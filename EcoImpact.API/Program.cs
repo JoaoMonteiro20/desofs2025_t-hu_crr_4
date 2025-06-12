@@ -79,19 +79,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:7001")
+        policy.WithOrigins("http://localhost:7001", "https://localhost:7001") 
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 // Database
 builder.Services.AddDbContext<EcoDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql =>
+        npgsql =>
         {
-            sql.MigrationsAssembly("EcoImpact.API");
-            sql.EnableRetryOnFailure(); 
+            npgsql.MigrationsAssembly("EcoImpact.API");
         }));
 
 // Controllers
@@ -131,12 +130,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Middleware
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "EcoImpact.API v1");
+});
+
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");

@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="EcoImpact.Frontend.styles.css" rel="stylesheet" />
+    <script>
+        window.configFileName = `appsettings.${location.hostname === "localhost" ? "Development" : "Production"}.json`;
+    </script>
 </head>
 
 <body>
