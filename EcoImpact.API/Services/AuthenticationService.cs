@@ -43,7 +43,7 @@ public class AuthenticationService : IAuthenticationService
         if (user.LockoutEnd != null && user.LockoutEnd > DateTime.UtcNow)
         {
             _logger.LogWarning("Utilizador {Username} está temporariamente bloqueado até {LockoutEnd}", username, user.LockoutEnd);
-            throw new InvalidOperationException("Utilizador bloqueado temporariamente por múltiplas tentativas falhadas.");
+            throw new InvalidOperationException($"Utilizador bloqueado temporariamente até {user.LockoutEnd?.ToLocalTime():HH:mm:ss dd/MM/yyyy}.");
         }
 
         if (!_passwordService.VerifyPassword(user, user.Password, password))
