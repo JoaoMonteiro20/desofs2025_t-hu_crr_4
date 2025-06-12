@@ -1,0 +1,25 @@
+name: Manual Deploy to Render
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy Backend (API) to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        curl -X POST https://api.render.com/deploy/srv-d15dokjuibrs73bscjhg \
+          -H 'Accept: application/json' \
+          -H 'Authorization: Bearer $RENDER_API_KEY'
+
+    - name: Deploy Frontend to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        curl -X POST https://api.render.com/deploy/srv-d15g1bffte5s7396an60 \
+          -H 'Accept: application/json' \
+          -H 'Authorization: Bearer $RENDER_API_KEY'
