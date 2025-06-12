@@ -24,23 +24,24 @@ public class AuthService : IAuthService
         var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
 
         if (!response.IsSuccessStatusCode)
-            return false;
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception(error); 
+        }
 
         var result = await response.Content.ReadFromJsonAsync<AuthResult>();
         if (string.IsNullOrWhiteSpace(result?.Token))
             return false;
 
         await _localStorage.SetItemAsync("authToken", result.Token);
-
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", result.Token);
 
-      
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(result.Token);
 
         var roles = token.Claims
-            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role") // compatível com vários esquemas
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
             .Select(c => c.Value)
             .ToList();
 

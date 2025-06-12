@@ -28,14 +28,23 @@
 
     private async Task HandleLogin()
     {
-        var success = await AuthService.LoginAsync(loginModel);
-        if (success)
+        try
         {
-            NavigationManager.NavigateTo("/home");
+            var success = await AuthService.LoginAsync(loginModel);
+            if (success)
+            {
+                ErrorMessage = null;
+                NavigationManager.NavigateTo("/home");
+            }
+            else
+            {
+                ErrorMessage = "Credenciais inválidas.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ErrorMessage = "Credenciais inválidas";
+            // Mostra erro de bloqueio, se aplicável
+            ErrorMessage = ex.Message;
         }
     }
 }
