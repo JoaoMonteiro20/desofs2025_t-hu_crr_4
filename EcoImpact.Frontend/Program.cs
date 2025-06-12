@@ -8,7 +8,7 @@ builder.RootComponents.Add<App>("#app");
 // Configura diretamente a URL da API aqui:
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri("https://localhost:7020") // <-- troca aqui se precisares
+    BaseAddress = new Uri("http://localhost:7020") // <-- troca aqui se precisares
 });
 
 builder.Services.AddBlazoredLocalStorage();

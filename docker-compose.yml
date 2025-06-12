@@ -1,16 +1,23 @@
 version: '3.8'
 
 services:
-  sql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: ecoimpact-sql
+  postgres:
+    image: postgres:15
+    container_name: ecoimpact-postgres
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong!Passw0rd
+      - POSTGRES_USER=eco
+      - POSTGRES_PASSWORD=eco123
+      - POSTGRES_DB=EcoImpactDb
+    restart: always
     networks:
       - ecoimpact-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "eco", "-d", "EcoImpactDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   ecoimpact-api:
     build:
@@ -20,10 +27,12 @@ services:
     ports:
       - "7020:7020"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sql,1433;Database=EcoImpactDb;User=sa;Password=YourStrong!Passw0rd;Encrypt=False;TrustServerCertificate=True;
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=EcoImpactDb;Username=eco;Password=eco123
     depends_on:
-      - sql
+      postgres:
+        condition: service_healthy
+    restart: always
     networks:
       - ecoimpact-net
 
@@ -33,9 +42,10 @@ services:
       dockerfile: Dockerfile
     container_name: ecoimpact-frontend
     ports:
-      - "7001:80"  
+      - "7001:80"
     depends_on:
       - ecoimpact-api
+    restart: always
     networks:
       - ecoimpact-net
 
