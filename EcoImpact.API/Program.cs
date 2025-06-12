@@ -80,9 +80,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
+            "https://desofs2025-t-hu-crr-4-1.onrender.com",
             "http://localhost:7001",
-            "https://localhost:7001",
-            "https://desofs2025-t-hu-crr-4-1.onrender.com" 
+            "https://localhost:7001"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
