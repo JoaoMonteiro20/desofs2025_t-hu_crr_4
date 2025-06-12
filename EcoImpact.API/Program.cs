@@ -38,13 +38,13 @@ builder.Services.AddAuthentication(options =>
     {
         OnChallenge = context =>
         {
-            context.HandleResponse(); // impede resposta automática padrão
+            context.HandleResponse(); // impede resposta automÃ¡tica padrÃ£o
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.ContentType = "application/json";
             var response = new
             {
-                error = "Não autenticado",
-                detail = "Token inválido ou ausente."
+                error = "NÃ£o autenticado",
+                detail = "Token invÃ¡lido ou ausente."
             };
             return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         },
@@ -55,7 +55,7 @@ builder.Services.AddAuthentication(options =>
             var response = new
             {
                 error = "Acesso negado",
-                detail = "Você não tem permissão para executar esta ação."
+                detail = "VocÃª nÃ£o tem permissÃ£o para executar esta aÃ§Ã£o."
             };
             return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
@@ -79,9 +79,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:7001", "https://localhost:7001") 
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:7001",
+            "https://localhost:7001",
+            "https://desofs2025-t-hu-crr-4-1.onrender.com" 
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 // Database
@@ -109,7 +113,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Insere 'Bearer' + espaço + token JWT.\nEx: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        Description = "Insere 'Bearer' + espaÃ§o + token JWT.\nEx: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
