@@ -29,6 +29,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=EcoImpactDb;Username=eco;Password=eco123
+      - JWT=${Jwt}
     depends_on:
       postgres:
         condition: service_healthy
