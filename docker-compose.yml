@@ -48,6 +48,8 @@ services:
     restart: always
     networks:
       - ecoimpact-net
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
 
 networks:
   ecoimpact-net:
