@@ -75,7 +75,10 @@ public class AuthenticationService : IAuthenticationService
         new Claim(ClaimTypes.Role, user.Role.ToString())
     };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var jwtSecret = Environment.GetEnvironmentVariable("JWT")?.Trim()
+        ?? throw new Exception("JWT não definido nas variáveis de ambiente.");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
