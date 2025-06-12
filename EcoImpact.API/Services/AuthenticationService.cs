@@ -13,18 +13,15 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly EcoDbContext _context;
     private readonly IPasswordService _passwordService;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
 
     public AuthenticationService(
         EcoDbContext context,
         IPasswordService passwordService,
-        IConfiguration configuration,
         ILogger<AuthenticationService> logger)
     {
         _context = context;
         _passwordService = passwordService;
-        _configuration = configuration;
         _logger = logger;
     }
 
