@@ -5,14 +5,11 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
-// Load appsettings.json from wwwroot
-using var http = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
-var configStream = await http.GetStreamAsync("appsettings.json");
-var config = await System.Text.Json.JsonSerializer.DeserializeAsync<Dictionary<string, string>>(configStream);
-
-// Read API base URL
-var apiBaseUrl = config["ApiBaseUrl"];
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+// Configura diretamente a URL da API aqui:
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri("https://localhost:7020") // <-- troca aqui se precisares
+});
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<IAuthService, AuthService>();
