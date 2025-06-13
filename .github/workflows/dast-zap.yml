@@ -2,7 +2,7 @@ name: DAST - OWASP ZAP
 
 on:
   push:
-    branches: [ resolve-problem-dast-secrets ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
