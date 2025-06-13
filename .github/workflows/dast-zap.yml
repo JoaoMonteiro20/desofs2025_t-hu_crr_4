@@ -2,13 +2,21 @@ name: DAST - OWASP ZAP
 
 on:
   push:
-    branches: [ main ]
+    branches: [ resolve-problem-dast-secrets ]
   workflow_dispatch:
 
 jobs:
   dast:
     name: Run OWASP ZAP Baseline Scan
     runs-on: ubuntu-latest
+
+    env:
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      ASPNETCORE_ENVIRONMENT: ${{ secrets.ASPNETCORE_ENVIRONMENT }}
+      ConnectionStrings__DefaultConnection: ${{ secrets.CONNECTION_STRING }}
+      Jwt: ${{ secrets.JWT }}
 
     steps:
       - name: Checkout code
